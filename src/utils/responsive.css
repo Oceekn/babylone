@@ -1,0 +1,58 @@
+/* Utility classes for responsive design */
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 769px) {
+  .container {
+    max-width: 480px;
+    padding: 0 16px;
+  }
+}
+
+/* Hide scrollbars but keep functionality */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth scrolling */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Responsive text */
+.text-responsive {
+  font-size: clamp(14px, 4vw, 16px);
+}
+
+/* Responsive spacing */
+.spacing-responsive {
+  padding: clamp(12px, 3vw, 16px);
+}
+
+/* Grid responsive */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .grid-responsive {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+  }
+}
+
+
+

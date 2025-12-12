@@ -1,0 +1,156 @@
+.booking-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.calendar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-grey);
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dark-grey);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: var(--red);
+  border-bottom-color: var(--red);
+}
+
+.calendar-months {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.month-calendar h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 12px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--grey);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-dark);
+}
+
+.calendar-day.selected {
+  background-color: #FF3131 !important;
+  color: var(--white) !important;
+  border-radius: 50% !important;
+}
+
+.time-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-selection h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.time-slot {
+  padding: 12px;
+  border: 1px solid var(--border-grey);
+  border-radius: 8px;
+  background-color: var(--white);
+  color: var(--text-dark);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-slot.selected {
+  background-color: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+
+.duration-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.duration-selection h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.duration-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.duration-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--border-grey);
+  border-radius: 8px;
+  background-color: var(--white);
+  color: var(--text-dark);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.duration-btn.active {
+  background-color: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+
+.booking-confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background-color: var(--grey);
+  border-radius: 12px;
+}
+
+.confirmation-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+}
+

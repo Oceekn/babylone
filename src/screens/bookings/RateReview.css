@@ -1,0 +1,119 @@
+.rate-review {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 0;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.review-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+
+.review-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 4px 0;
+}
+
+.review-header p {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.rating-display {
+  text-align: center;
+}
+
+.rating-number {
+  font-size: 64px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.stars-large {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  color: var(--orange);
+  margin-bottom: 8px;
+}
+
+.rating-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.breakdown-item span {
+  min-width: 120px;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background-color: var(--border-grey);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--red);
+  transition: width 0.3s;
+}
+
+.review-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--border-grey);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.add-photos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px;
+  border: 2px dashed var(--border-grey);
+  border-radius: 12px;
+  background-color: var(--grey);
+  cursor: pointer;
+}
+
+.add-photos p {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+
+

@@ -1,0 +1,137 @@
+.financial-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+  background-color: #F7FAFC;
+}
+
+.financial-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overview-card {
+  position: relative;
+  padding: 16px;
+  background-color: transparent;
+  border-radius: 0;
+  overflow: hidden;
+  border: none;
+}
+
+.overview-label {
+  font-size: 12px;
+  color: var(--dark-grey);
+  margin: 0 0 8px 0;
+}
+
+.overview-amount {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.card-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 32px;
+  opacity: 0.3;
+}
+
+.revenue-overview,
+.profitable-services {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: #E8EBF2;
+  border-radius: 12px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.growth-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.growth-indicator span:first-child {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.growth-text {
+  font-size: 12px;
+  color: var(--dark-grey);
+}
+
+.chart-placeholder {
+  height: 150px;
+  background-color: var(--white);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+}
+
+.transaction-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transaction-history h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
+}
+
+.tx-service {
+  font-size: 14px;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.tx-amount {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4CAF50;
+  margin: 0;
+}
+

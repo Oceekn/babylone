@@ -1,0 +1,88 @@
+.verification-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 24px 0;
+  background-color: #EFF6FF;
+  min-height: 100vh;
+}
+
+.verification-screen .btn {
+  background-color: #87CEEB !important;
+  border-color: #87CEEB !important;
+  color: var(--white) !important;
+}
+
+.verification-screen .btn:hover {
+  background-color: #6BB6D6 !important;
+  border-color: #6BB6D6 !important;
+}
+
+.progress-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border-grey);
+  transition: background-color 0.2s;
+}
+
+.progress-dot.active {
+  background-color: var(--primary-blue);
+}
+
+.verification-instruction {
+  font-size: 16px;
+  color: var(--text-dark);
+  text-align: center;
+  margin: 0;
+}
+
+.code-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.code-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.code-inputs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.code-input {
+  width: 48px;
+  height: 56px;
+  border: 2px solid var(--border-grey);
+  border-radius: 8px;
+  background-color: var(--white);
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  transition: border-color 0.2s;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+.resend-text {
+  text-align: center;
+  color: #A14545;
+  font-size: 14px;
+  margin: 0;
+}
+

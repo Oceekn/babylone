@@ -1,0 +1,69 @@
+.login-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 0;
+  background-color: #EFF6FF;
+  min-height: 100vh;
+}
+
+.login-screen .btn {
+  background-color: #87CEEB !important;
+  border-color: #87CEEB !important;
+  color: var(--white) !important;
+}
+
+.login-screen .btn:hover {
+  background-color: #6BB6D6 !important;
+  border-color: #6BB6D6 !important;
+}
+
+.welcome-text {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.forgot-password {
+  background: none;
+  border: none;
+  color: var(--primary-blue);
+  font-size: 14px;
+  text-align: right;
+  cursor: pointer;
+  padding: 0;
+  align-self: flex-end;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.social-login-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.social-separator {
+  text-align: center;
+  color: var(--dark-grey);
+  font-size: 14px;
+  margin: 0;
+}
+
+.social-note {
+  text-align: center;
+  color: var(--red);
+  font-size: 12px;
+  margin: 0;
+}
+

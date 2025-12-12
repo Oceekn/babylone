@@ -1,0 +1,145 @@
+/* Styles globaux pour les pages professionnelles */
+
+/* Fond des pages professionnelles */
+[data-professional="true"] .screen-content {
+  background-color: #F7FAFC !important;
+}
+
+[data-professional="true"] .screen-layout {
+  background-color: #F7FAFC !important;
+}
+
+[data-professional="true"] .screen-header {
+  background-color: #F7FAFC !important;
+}
+
+[class*="professional-"] {
+  background-color: #F7FAFC;
+}
+
+/* Boutons professionnels - utiliser l'attribut data-professional */
+[data-professional="true"] .btn-primary,
+[data-professional="true"] .btn-secondary,
+[data-professional="true"] .btn {
+  background-color: #125CED !important;
+  border-color: #125CED !important;
+  color: var(--white) !important;
+}
+
+[data-professional="true"] .btn-outline {
+  background-color: transparent !important;
+  color: #125CED !important;
+  border-color: #125CED !important;
+}
+
+[data-professional="true"] .btn-outline:hover:not(:disabled) {
+  background-color: rgba(18, 92, 237, 0.1) !important;
+}
+
+/* Icônes professionnelles - toutes les icônes SVG dans les pages pro */
+[data-professional="true"] svg,
+[data-professional="true"] .header-button svg,
+[data-professional="true"] button svg {
+  color: #4D6699 !important;
+}
+
+/* Navigation professionnelle */
+.professional-bottom-nav .nav-item {
+  color: #4D6699 !important;
+}
+
+.professional-bottom-nav .nav-item span {
+  color: #4D6699 !important;
+}
+
+.professional-bottom-nav .nav-item svg {
+  stroke: #4D6699 !important;
+  fill: none !important;
+}
+
+.professional-bottom-nav .nav-item.active svg {
+  stroke: #000000 !important;
+  fill: #000000 !important;
+}
+
+.professional-bottom-nav .nav-item.active {
+  color: #000000 !important;
+}
+
+.professional-bottom-nav .nav-item.active span {
+  color: #000000 !important;
+}
+
+/* Cibler aussi les classes professionnelles directement */
+[class*="professional-"] .btn-primary,
+[class*="professional-"] .btn-secondary {
+  background-color: #125CED !important;
+  border-color: #125CED !important;
+  color: var(--white) !important;
+}
+
+[class*="professional-"] .btn-outline {
+  background-color: transparent !important;
+  color: #125CED !important;
+  border-color: #125CED !important;
+}
+
+[class*="professional-"] svg {
+  color: #4D6699 !important;
+}
+
+/* Box/Cartes dans les pages professionnelles */
+[data-professional="true"] .metric-card,
+[data-professional="true"] .reservation-item,
+[data-professional="true"] .review-card,
+[data-professional="true"] .request-card,
+[data-professional="true"] .client-info-card,
+[data-professional="true"] .detail-box,
+[data-professional="true"] .appointment-item,
+[data-professional="true"] .review-item,
+[data-professional="true"] .service-item,
+[data-professional="true"] .available-balance,
+[data-professional="true"] .transaction-item,
+[data-professional="true"] .financial-card {
+  background-color: #E8EBF2 !important;
+}
+
+/* Cibler aussi directement les classes */
+.metric-card,
+.reservation-item,
+.review-card,
+.request-card,
+.client-info-card,
+.detail-box,
+.appointment-item,
+.review-item:not(.reply),
+.service-item,
+.available-balance,
+.transaction-item,
+.financial-card {
+  background-color: #E8EBF2 !important;
+}
+
+/* Exceptions - éléments sans box */
+[data-professional="true"] .profile-header,
+[data-professional="true"] .document-item,
+[data-professional="true"] .pricing-item,
+[data-professional="true"] .setting-item,
+[data-professional="true"] .overall-rating,
+[data-professional="true"] .client-info-card,
+[data-professional="true"] .transaction-item,
+[data-professional="true"] .overview-card,
+[data-professional="true"] .history-item,
+.profile-header,
+.document-item,
+.pricing-item,
+.setting-item,
+.overall-rating,
+.client-info-card,
+.transaction-item,
+.overview-card,
+.history-item {
+  background-color: transparent !important;
+  border: none !important;
+}
+

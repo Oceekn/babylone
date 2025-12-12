@@ -1,0 +1,142 @@
+.calendar-management {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+  background-color: #F7FAFC;
+}
+
+.month-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.month-selector button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dark);
+}
+
+.month-selector h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.calendar-view {
+  padding: 8px;
+  background-color: transparent;
+  border-radius: 0;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-bottom: 4px;
+}
+
+.day-header {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dark-grey);
+  padding: 4px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border-radius: 0;
+  font-size: 13px;
+  color: var(--text-dark);
+  padding: 4px;
+}
+
+.calendar-management .calendar-day.selected,
+.calendar-view .calendar-day.selected {
+  background-color: #125CED !important;
+  color: var(--white) !important;
+  border-radius: 50% !important;
+}
+
+.appointments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointments-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.appointment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #E8EBF2;
+  border-radius: 8px;
+}
+
+.appointment-service {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 4px 0;
+}
+
+.appointment-time {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.appointment-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.appointment-status.confirmed {
+  background-color: #4CAF50;
+  color: var(--white);
+}
+
+.appointment-status.pending {
+  background-color: var(--orange);
+  color: var(--white);
+}
+
+.appointment-status.completed {
+  background-color: var(--primary-blue);
+  color: var(--white);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--white);
+}
+

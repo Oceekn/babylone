@@ -1,0 +1,109 @@
+.service-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.service-item {
+  padding: 16px;
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.service-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 4px 0;
+}
+
+.service-duration {
+  font-size: 14px;
+  color: var(--dark-grey);
+}
+
+.select-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border-grey);
+  background-color: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.select-btn.selected {
+  background-color: var(--red);
+  border-color: var(--red);
+  color: var(--white);
+}
+
+.service-description {
+  color: var(--text-dark);
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+.service-price {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 8px 0 0 0;
+}
+
+.addons-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.addons-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.addon-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--grey);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.addon-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary-blue);
+  cursor: pointer;
+}
+
+.addon-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addon-price {
+  color: var(--dark-grey);
+  font-size: 14px;
+}
+
+
+

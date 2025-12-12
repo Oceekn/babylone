@@ -1,0 +1,84 @@
+.map-view {
+  height: calc(100vh - 80px);
+  position: relative;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+.map-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+}
+
+.service-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 100%);
+}
+
+.service-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.service-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  background-color: var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.service-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.service-info h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.service-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--orange);
+  font-size: 14px;
+}
+
+.service-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.service-actions button {
+  flex: 1;
+}
+
+
+

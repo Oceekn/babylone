@@ -1,0 +1,149 @@
+.wallet-home {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.wallet-card {
+  position: relative;
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--red) 0%, #4A90E2 100%);
+}
+
+.card-content {
+  position: relative;
+  z-index: 1;
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--white);
+}
+
+.balance-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0 0 8px 0;
+}
+
+.balance-amount {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.balance-subtitle {
+  font-size: 12px;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.wallet-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 12px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--dark-grey);
+  margin: 0 0 8px 0;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.transaction-history h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 16px 0;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--grey);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 2px 0;
+}
+
+.transaction-description {
+  font-size: 12px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.transaction-amount.positive {
+  color: #4CAF50;
+}
+
+.transaction-amount.negative {
+  color: var(--red);
+}
+
+
+

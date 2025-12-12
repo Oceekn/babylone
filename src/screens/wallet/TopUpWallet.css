@@ -1,0 +1,177 @@
+.topup-wallet {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.available-balance {
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 12px;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0 0 4px 0;
+}
+
+.balance-amount {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.quick-amounts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.amount-btn {
+  padding: 12px;
+  border: 1px solid var(--border-grey);
+  border-radius: 8px;
+  background-color: var(--white);
+  color: var(--text-dark);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.amount-btn:hover {
+  border-color: var(--primary-blue);
+  background-color: var(--light-blue);
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-methods h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 8px 0;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.payment-option input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary-blue);
+}
+
+.payment-option > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.payment-option span {
+  font-size: 16px;
+  color: var(--text-dark);
+}
+
+.option-detail {
+  font-size: 12px;
+  color: var(--dark-grey);
+}
+
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  appearance: none;
+  background-color: var(--border-grey);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle-switch:checked {
+  background-color: var(--primary-blue);
+}
+
+.toggle-switch::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--white);
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.toggle-switch:checked::before {
+  transform: translateX(20px);
+}
+
+.recent-topups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recent-topups h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.topup-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--grey);
+  border-radius: 8px;
+}
+
+.topup-item svg {
+  color: var(--primary-blue);
+}
+
+.topup-item > div {
+  flex: 1;
+}
+
+.topup-item p {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 2px 0;
+}
+
+.topup-date {
+  font-size: 12px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.topup-status {
+  padding: 4px 8px;
+  background-color: #4CAF50;
+  color: var(--white);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+

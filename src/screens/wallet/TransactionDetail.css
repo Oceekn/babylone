@@ -1,0 +1,119 @@
+.transaction-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 0;
+  align-items: center;
+}
+
+.transaction-type-badge {
+  padding: 8px 16px;
+  background-color: var(--grey);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.transaction-date {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.transaction-amount-large {
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--red);
+  margin: 8px 0;
+}
+
+.transaction-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4CAF50;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+}
+
+.transaction-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 12px;
+}
+
+.info-item svg {
+  color: var(--primary-blue);
+  flex-shrink: 0;
+}
+
+.info-label {
+  font-size: 12px;
+  color: var(--dark-grey);
+  margin: 0 0 4px 0;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.receipt-details {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 12px;
+}
+
+.receipt-details h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 16px 0;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.receipt-row.total {
+  font-size: 18px;
+  font-weight: 600;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-grey);
+}
+
+.transaction-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+

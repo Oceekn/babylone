@@ -1,0 +1,173 @@
+.group-info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.group-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+
+.group-avatars {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.group-avatar {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  border: 3px solid var(--white);
+}
+
+.group-avatar:first-child {
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.group-avatar:last-child {
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.group-name {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.member-count {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.members-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--grey);
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.member-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.admin-badge {
+  padding: 4px 8px;
+  background-color: var(--primary-blue);
+  color: var(--white);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.options-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: var(--grey);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.option-item:hover {
+  background-color: var(--border-grey);
+}
+
+.option-item span {
+  flex: 1;
+  color: var(--text-dark);
+  font-size: 16px;
+}
+
+.toggle {
+  width: 44px;
+  height: 24px;
+  appearance: none;
+  background-color: var(--border-grey);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toggle:checked {
+  background-color: var(--primary-blue);
+}
+
+.toggle::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--white);
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.toggle:checked::before {
+  transform: translateX(20px);
+}
+
+
+

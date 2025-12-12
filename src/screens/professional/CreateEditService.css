@@ -1,0 +1,79 @@
+.create-edit-service {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 0;
+  background-color: #F7FAFC;
+}
+
+.create-edit-service .input-wrapper .input {
+  background-color: #E8EBF5 !important;
+  border-color: transparent !important;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.duration-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.duration-input .input-wrapper {
+  flex: 1;
+}
+
+.unit-label {
+  padding: 12px 16px;
+  background-color: #E8EBF2;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.photos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px;
+  border: 2px dashed var(--border-grey);
+  border-radius: 12px;
+  background-color: #E8EBF2;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.photo-upload-area:hover {
+  border-color: var(--primary-blue);
+}
+
+.photo-upload-area svg {
+  color: var(--dark-grey);
+}
+
+.photo-upload-area p {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: var(--dark-grey);
+  text-align: center;
+}
+

@@ -1,0 +1,171 @@
+.withdrawal-request {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+  background-color: #F7FAFC;
+}
+
+.withdrawal-request .input-wrapper .input {
+  background-color: #E8EBF5 !important;
+  border-color: transparent !important;
+}
+
+.available-balance {
+  padding: 16px;
+  background-color: #E8EBF2;
+  border-radius: 12px;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0 0 4px 0;
+}
+
+.balance-amount {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.amount-input-section {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.amount-input-section .input-wrapper {
+  flex: 1;
+}
+
+.max-btn {
+  padding: 12px 24px;
+  white-space: nowrap;
+}
+
+.withdrawal-method {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.withdrawal-method h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.method-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: #E8EBF2;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.method-option input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary-blue);
+}
+
+.method-option span {
+  font-size: 16px;
+  color: var(--text-dark);
+}
+
+.fees-section {
+  padding: 16px;
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
+}
+
+.fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.fee-row span:first-child {
+  color: #4D6699;
+}
+
+.net-amount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-grey);
+  margin-top: 8px;
+}
+
+.net-amount span:first-child {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4D6699;
+}
+
+.net-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.withdrawal-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.withdrawal-history h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
+}
+
+.history-item svg {
+  color: var(--primary-blue);
+}
+
+.history-item > div {
+  flex: 1;
+}
+
+.history-item p {
+  font-size: 14px;
+  color: var(--text-dark);
+  margin: 0 0 2px 0;
+}
+
+.history-amount {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.history-date {
+  font-size: 12px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+

@@ -1,0 +1,124 @@
+.signup-personal {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+  background-color: #EFF6FF;
+  min-height: 100vh;
+  padding-top: 16px;
+}
+
+.signup-personal .btn {
+  background-color: #87CEEB !important;
+  border-color: #87CEEB !important;
+  color: var(--white) !important;
+}
+
+.signup-personal .btn:hover {
+  background-color: #6BB6D6 !important;
+  border-color: #6BB6D6 !important;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gender-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.gender-selector {
+  display: flex;
+  position: relative;
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid var(--border-grey);
+  overflow: hidden;
+}
+
+.gender-slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(33.333% - 2.67px);
+  height: calc(100% - 8px);
+  background-color: #EFF6FF;
+  border-radius: 8px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.gender-option {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background-color: transparent;
+  color: var(--dark-grey);
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.gender-option.active {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.photo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px dashed var(--border-grey);
+  border-radius: 8px;
+  background-color: var(--grey);
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.photo-upload:hover {
+  border-color: var(--primary-blue);
+  background-color: var(--light-blue);
+}
+
+.progress-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border-grey);
+  transition: background-color 0.2s;
+}
+
+.progress-dot.active {
+  background-color: var(--primary-blue);
+}
+

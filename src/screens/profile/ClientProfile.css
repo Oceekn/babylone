@@ -1,0 +1,110 @@
+.client-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 0;
+  background-color: #F7FAFC;
+}
+
+.profile-chart {
+  width: 150px;
+  height: 150px;
+  position: relative;
+}
+
+.pie-chart {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-segment {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-segment.grey {
+  background: conic-gradient(var(--dark-grey) 0deg 120deg, transparent 120deg);
+}
+
+.chart-segment.green {
+  background: conic-gradient(#4CAF50 120deg 240deg, transparent 240deg);
+  z-index: 1;
+}
+
+.chart-segment.orange {
+  background: conic-gradient(var(--orange) 240deg 360deg, transparent 360deg);
+  z-index: 2;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+}
+
+.profile-name {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.profile-title {
+  font-size: 16px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.profile-stats {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.menu-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 16px;
+  color: var(--text-dark);
+  transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+  background-color: var(--border-grey);
+}
+
+.menu-item span {
+  flex: 1;
+}
+

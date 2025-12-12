@@ -1,0 +1,134 @@
+.payment-method {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.wallet-balance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 12px;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 0 0 4px 0;
+}
+
+.balance-amount {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.add-balance-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-blue);
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-methods h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 8px 0;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.payment-option input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #FF3131;
+  cursor: pointer;
+  appearance: none;
+  border: 2px solid var(--border-grey);
+  border-radius: 50%;
+  position: relative;
+}
+
+.payment-option input[type="radio"]:checked {
+  border-color: #FF3131;
+  background-color: var(--white);
+}
+
+.payment-option input[type="radio"]:checked::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #FF3131;
+}
+
+.payment-option span {
+  flex: 1;
+  color: var(--text-dark);
+  font-size: 16px;
+}
+
+.payment-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--grey);
+  border-radius: 12px;
+}
+
+.payment-summary h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 8px 0;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.summary-row.discount {
+  color: var(--red);
+}
+
+.summary-row.total {
+  font-size: 18px;
+  font-weight: 600;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-grey);
+}
+
