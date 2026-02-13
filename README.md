@@ -1,20 +1,32 @@
 # BABYLONE - Messagerie Social Services
 
-Application frontend complète pour la plateforme BABYLONE, une application de messagerie sociale et de services.
+Application complète (frontend + backend) pour la plateforme BABYLONE : messagerie, social, services, réservations, portefeuille.
 
-## 🚀 Installation
+## Lancer l’application
 
+**Pour tout détaillé (Docker, .env, ordre des commandes), voir [DEMARRAGE.md](./DEMARRAGE.md).**
+
+En bref :
+1. **Docker** (depuis `backend/`) : `docker-compose up -d`
+2. **Backend** (depuis `backend/`) : `npm run start:dev`
+3. **Frontend** (à la racine) : `npm run dev`
+
+- Frontend : **http://localhost:5173**
+- API : **http://localhost:3000/api/v1**
+
+## Installation (une fois)
+
+À la racine du projet (frontend) :
 ```bash
 npm install
 ```
 
-## 📱 Démarrage
-
+Dans `backend/` (backend) :
 ```bash
-npm run dev
+cd backend
+npm install
 ```
-
-L'application sera accessible sur `http://localhost:3000`
+Un fichier `backend/.env` est requis ; voir [DEMARRAGE.md](./DEMARRAGE.md) pour le contenu.
 
 ## 🏗️ Structure du Projet
 
@@ -55,6 +67,7 @@ L'application utilise une palette de couleurs moderne:
 - `/wallet` - Portefeuille
 - `/profile` - Profil utilisateur
 - `/professional/*` - Dashboard professionnel
+
 
 
 

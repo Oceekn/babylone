@@ -1,59 +1,94 @@
+import { useState } from 'react'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import './NotificationsSettings.css'
 
+interface NotifSettings {
+  [key: string]: boolean
+}
+
 const NotificationsSettings = () => {
-  const notificationCategories = [
+  const [settings, setSettings] = useState<NotifSettings>(() => {
+    const stored = localStorage.getItem('notification_settings')
+    return stored ? JSON.parse(stored) : {
+      msg_sounds: true,
+      msg_vibration: true,
+      msg_preview: true,
+      social_likes: true,
+      social_comments: true,
+      social_friends: true,
+      booking_confirmations: true,
+      booking_reminders: true,
+      booking_updates: true,
+      promotions: false,
+      dnd: false,
+    }
+  })
+
+  const toggle = (key: string) => {
+    const updated = { ...settings, [key]: !settings[key] }
+    setSettings(updated)
+    localStorage.setItem('notification_settings', JSON.stringify(updated))
+  }
+
+  const categories = [
     {
       title: 'Messages',
       items: [
-        { label: 'Sons', description: 'Jouer un son lorsque vous recevez un message' },
-        { label: 'Vibrations', description: 'Vibrer lorsque vous recevez un message' },
-        { label: 'Aperçu', description: 'Afficher un aperçu du message' }
+        { key: 'msg_sounds', label: 'Sons', description: 'Jouer un son lorsque vous recevez un message' },
+        { key: 'msg_vibration', label: 'Vibrations', description: 'Vibrer lorsque vous recevez un message' },
+        { key: 'msg_preview', label: 'Apercu', description: 'Afficher un apercu du message' },
       ]
     },
     {
       title: 'Social',
       items: [
-        { label: 'Likes', description: 'Recevoir des notifications pour les likes' },
-        { label: 'Commentaires', description: 'Recevoir des notifications pour les commentaires' },
-        { label: 'Demandes d\'amis', description: 'Recevoir des notifications pour les demandes d\'amis' }
+        { key: 'social_likes', label: 'Likes', description: 'Notifications pour les likes' },
+        { key: 'social_comments', label: 'Commentaires', description: 'Notifications pour les commentaires' },
+        { key: 'social_friends', label: 'Demandes d\'amis', description: 'Notifications pour les demandes d\'amis' },
       ]
     },
     {
-      title: 'Réservations',
+      title: 'Reservations',
       items: [
-        { label: 'Confirmations', description: 'Recevoir des notifications pour les confirmations' },
-        { label: 'Rappels', description: 'Recevoir des notifications pour les rappels' },
-        { label: 'Mises à jour', description: 'Recevoir des notifications pour les mises à jour' }
+        { key: 'booking_confirmations', label: 'Confirmations', description: 'Notifications de confirmations' },
+        { key: 'booking_reminders', label: 'Rappels', description: 'Rappels de reservations' },
+        { key: 'booking_updates', label: 'Mises a jour', description: 'Mises a jour de statut' },
       ]
     },
     {
       title: 'Promotions',
       items: [
-        { label: 'Promotions', description: 'Recevoir des notifications pour les promotions' }
+        { key: 'promotions', label: 'Promotions', description: 'Offres et promotions' },
       ]
     },
     {
-      title: 'Ne pas déranger',
+      title: 'Ne pas deranger',
       items: [
-        { label: 'Planifier', description: 'Planifier les heures de ne pas déranger' }
+        { key: 'dnd', label: 'Activer', description: 'Desactiver toutes les notifications' },
       ]
-    }
+    },
   ]
 
   return (
-    <ScreenLayout title="Notifications Setti..." showBack showBottomNav>
+    <ScreenLayout title="Notifications" showBack showBottomNav>
       <div className="notifications-settings">
-        {notificationCategories.map((category, catIndex) => (
+        {categories.map((category, catIndex) => (
           <div key={catIndex} className="notification-category">
             <h3 className="category-title">{category.title}</h3>
-            {category.items.map((item, itemIndex) => (
-              <div key={itemIndex} className="notification-item">
+            {category.items.map((item) => (
+              <div key={item.key} className="notification-item">
                 <div className="notification-info">
                   <p className="notification-label">{item.label}</p>
                   <p className="notification-description">{item.description}</p>
                 </div>
-                <input type="checkbox" className="toggle-switch" />
+                <label className="toggle-container">
+                  <input
+                    type="checkbox"
+                    checked={settings[item.key] || false}
+                    onChange={() => toggle(item.key)}
+                  />
+                  <span className="toggle-slider" />
+                </label>
               </div>
             ))}
           </div>
@@ -64,6 +99,3 @@ const NotificationsSettings = () => {
 }
 
 export default NotificationsSettings
-
-
-

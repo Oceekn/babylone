@@ -1,10 +1,65 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
-import { Briefcase } from 'lucide-react'
+import { Briefcase, User } from 'lucide-react'
 import './SignUpContact.css'
+
+// Fonction pour calculer la force du mot de passe
+const calculatePasswordStrength = (password: string): { score: number; level: 'weak' | 'medium' | 'strong' | 'very-strong'; label: string; color: string } => {
+  if (!password) {
+    return { score: 0, level: 'weak', label: '', color: '#E0E0E0' }
+  }
+
+  let score = 0
+  const checks = {
+    length: password.length >= 8,
+    hasLowercase: /[a-z]/.test(password),
+    hasUppercase: /[A-Z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+  }
+
+  // Calcul du score
+  if (checks.length) score += 20
+  if (checks.hasLowercase) score += 20
+  if (checks.hasUppercase) score += 20
+  if (checks.hasNumber) score += 20
+  if (checks.hasSpecial) score += 20
+
+  // Bonus pour longueur supplémentaire
+  if (password.length >= 12) score += 10
+  if (password.length >= 16) score += 10
+
+  // Limiter à 100
+  score = Math.min(score, 100)
+
+  // Déterminer le niveau
+  let level: 'weak' | 'medium' | 'strong' | 'very-strong'
+  let label: string
+  let color: string
+
+  if (score < 40) {
+    level = 'weak'
+    label = 'Faible'
+    color = '#FF3131'
+  } else if (score < 60) {
+    level = 'medium'
+    label = 'Moyen'
+    color = '#FFA500'
+  } else if (score < 80) {
+    level = 'strong'
+    label = 'Fort'
+    color = '#4CAF50'
+  } else {
+    level = 'very-strong'
+    label = 'Très fort'
+    color = '#125CED'
+  }
+
+  return { score, level, label, color }
+}
 
 const SignUpContact = () => {
   const navigate = useNavigate()
@@ -14,14 +69,42 @@ const SignUpContact = () => {
     password: '',
     accountType: 'Client'
   })
+  const [error, setError] = useState<string | null>(null)
+
+  // Calculer la force du mot de passe
+  const passwordStrength = useMemo(() => calculatePasswordStrength(formData.password), [formData.password])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const handleNext = () => {
-    // Stocker le type de compte dans localStorage pour l'utiliser après vérification
+    // Valider les champs
+    if (!formData.phone || !formData.password) {
+      setError('Veuillez remplir tous les champs obligatoires')
+      return
+    }
+
+    // Stocker les données d'inscription pour l'utiliser après vérification
+    const signupData = {
+      telephone: `+237${formData.phone}`,
+      password: formData.password,
+      email: formData.email || undefined,
+      accountType: formData.accountType,
+      pays_code: 'CM', // Par défaut Cameroun
+    }
+
+    // Récupérer les données personnelles si disponibles
+    const personalInfo = localStorage.getItem('personalInfo')
+    if (personalInfo) {
+      const personal = JSON.parse(personalInfo)
+      signupData.first_name = personal.firstName
+      signupData.last_name = personal.lastName
+    }
+
+    localStorage.setItem('signupData', JSON.stringify(signupData))
     localStorage.setItem('accountType', formData.accountType)
+    
     navigate('/signup/verification')
   }
 
@@ -64,12 +147,92 @@ const SignUpContact = () => {
             value={formData.password}
             onChange={(e) => handleInputChange('password', e.target.value)}
           />
-          <div className="password-strength">
-            <label className="input-label">Password Strength</label>
-            <div className="strength-bar">
-              <div className="strength-fill" style={{ width: '60%' }}></div>
+          {formData.password && (
+            <div className="password-strength">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label className="input-label">Force du mot de passe</label>
+                <span style={{ 
+                  fontSize: '12px', 
+                  fontWeight: '600',
+                  color: passwordStrength.color 
+                }}>
+                  {passwordStrength.label}
+                </span>
+              </div>
+              <div className="strength-bar" style={{ 
+                backgroundColor: '#E0E0E0',
+                borderRadius: '4px',
+                height: '6px',
+                overflow: 'hidden'
+              }}>
+                <div 
+                  className="strength-fill" 
+                  style={{ 
+                    width: `${passwordStrength.score}%`,
+                    height: '100%',
+                    backgroundColor: passwordStrength.color,
+                    transition: 'all 0.3s ease',
+                    borderRadius: '4px'
+                  }}
+                ></div>
+              </div>
+              {formData.password.length > 0 && (
+                <div style={{ 
+                  fontSize: '11px', 
+                  marginTop: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <span style={{ 
+                    color: formData.password.length >= 8 ? '#4CAF50' : '#FF3131',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'color 0.2s ease'
+                  }}>
+                    {formData.password.length >= 8 ? '✓' : '•'} Minimum 8 caractères
+                  </span>
+                  <span style={{ 
+                    color: /[a-z]/.test(formData.password) ? '#4CAF50' : '#FF3131',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'color 0.2s ease'
+                  }}>
+                    {/[a-z]/.test(formData.password) ? '✓' : '•'} Au moins une minuscule
+                  </span>
+                  <span style={{ 
+                    color: /[A-Z]/.test(formData.password) ? '#4CAF50' : '#FF3131',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'color 0.2s ease'
+                  }}>
+                    {/[A-Z]/.test(formData.password) ? '✓' : '•'} Au moins une majuscule
+                  </span>
+                  <span style={{ 
+                    color: /[0-9]/.test(formData.password) ? '#4CAF50' : '#FF3131',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'color 0.2s ease'
+                  }}>
+                    {/[0-9]/.test(formData.password) ? '✓' : '•'} Au moins un chiffre
+                  </span>
+                  <span style={{ 
+                    color: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? '#4CAF50' : '#FF3131',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'color 0.2s ease'
+                  }}>
+                    {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? '✓' : '•'} Au moins un caractère spécial
+                  </span>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
 
         <h2 className="section-title">Account Type</h2>
@@ -79,7 +242,9 @@ const SignUpContact = () => {
             className={`account-type-card ${formData.accountType === 'Client' ? 'active' : ''}`}
             onClick={() => handleInputChange('accountType', 'Client')}
           >
-            <div className="account-icon">📱</div>
+            <div className="account-icon">
+              <User size={48} color="#87CEEB" />
+            </div>
             <div className="account-info">
               <h3>Client</h3>
               <p>I want to book services</p>
@@ -99,8 +264,14 @@ const SignUpContact = () => {
           </button>
         </div>
 
+        {error && (
+          <div style={{ background: '#FFF3F3', border: '1px solid #FF5252', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px', color: '#D32F2F', fontSize: '13px' }}>
+            {error}
+          </div>
+        )}
+
         <Button variant="primary" fullWidth onClick={handleNext}>
-          Next
+          Suivant
         </Button>
       </div>
     </ScreenLayout>

@@ -1,27 +1,67 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import { Search, Edit, Plus } from 'lucide-react'
+import { chatService, Conversation } from '../../services/chat.service'
 import './MessagesList.css'
 
 const MessagesList = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'all' | 'individual' | 'group'>('all')
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const messages = [
-    { id: 1, name: 'Aisha', lastMessage: 'Hey! How are you?', time: '10:30', avatar: '👤', isGroup: false },
-    { id: 2, name: 'Jean-Pierre', lastMessage: 'See you tomorrow', time: '10:20', avatar: '👤', isGroup: false },
-    { id: 3, name: 'Groupe Amis', lastMessage: 'Fatou: Great idea!', time: '09:15', avatar: '👥', isGroup: true },
-    { id: 4, name: 'Fatou', lastMessage: 'Thanks for the help', time: '08:45', avatar: '👤', isGroup: false },
-    { id: 5, name: 'Moussa', lastMessage: 'Are you free today?', time: '08:30', avatar: '👤', isGroup: false },
-    { id: 6, name: 'Groupe Famille', lastMessage: 'Marie: Happy birthday!', time: 'Hier', avatar: '👥', isGroup: true }
-  ]
+  useEffect(() => {
+    loadConversations()
+  }, [])
 
-  const filteredMessages = messages.filter(message => {
-    if (activeTab === 'all') return true
-    if (activeTab === 'individual') return !message.isGroup
-    if (activeTab === 'group') return message.isGroup
+  const loadConversations = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await chatService.getConversations()
+      setConversations(data || [])
+    } catch (err: any) {
+      console.error('Erreur lors du chargement des conversations:', err)
+      setError('Erreur lors du chargement des messages')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatTime = (dateString?: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+      return `${diffInMinutes}m`
+    }
+    if (diffInHours < 24) {
+      return `${diffInHours}h`
+    }
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays === 1) return 'Hier'
+    if (diffInDays < 7) return `${diffInDays}j`
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  }
+
+  const filteredMessages = conversations.filter(conv => {
+    // Filtrage par type
+    if (activeTab === 'individual' && conv.type !== 'individual') return false
+    if (activeTab === 'group' && conv.type !== 'group') return false
+    
+    // Filtrage par recherche
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      return conv.name?.toLowerCase().includes(query) || 
+             conv.last_message?.toLowerCase().includes(query)
+    }
     return true
   })
 
@@ -36,8 +76,16 @@ const MessagesList = () => {
           <Input
             placeholder="Rechercher"
             icon={<Search size={20} />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+
+        {error && (
+          <div style={{ padding: '10px', textAlign: 'center', color: '#FF3131', fontSize: '14px' }}>
+            {error}
+          </div>
+        )}
 
         <div className="tabs">
           <button 
@@ -61,22 +109,47 @@ const MessagesList = () => {
         </div>
 
         <div className="messages-container">
-          {filteredMessages.map((message) => (
-            <div
-              key={message.id}
-              className="message-item"
-              onClick={() => navigate(`/messages/chat/${message.id}`)}
-            >
-              <div className="message-avatar">{message.avatar}</div>
-              <div className="message-content">
-                <div className="message-header">
-                  <span className="message-name">{message.name}</span>
-                  <span className="message-time">{message.time}</span>
-                </div>
-                <p className="message-preview">{message.lastMessage}</p>
-              </div>
+          {loading && conversations.length === 0 ? (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <p>Chargement...</p>
             </div>
-          ))}
+          ) : filteredMessages.length > 0 ? (
+            filteredMessages.map((conv) => (
+              <div
+                key={conv.id}
+                className="message-item"
+                onClick={() => navigate(`/messages/chat/${conv.id}`)}
+              >
+                <div className="message-avatar">
+                  {conv.avatar_url ? (
+                    <img src={conv.avatar_url} alt={conv.name} />
+                  ) : (
+                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
+                      {(conv.name || 'C').charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="message-content">
+                  <div className="message-header">
+                    <span className="message-name">{conv.name || 'Conversation'}</span>
+                    {conv.last_message_at && (
+                      <span className="message-time">{formatTime(conv.last_message_at)}</span>
+                    )}
+                  </div>
+                  <p className="message-preview">
+                    {conv.last_message || 'Aucun message'}
+                  </p>
+                  {conv.unread_count && conv.unread_count > 0 && (
+                    <span className="unread-badge">{conv.unread_count}</span>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <p>Aucune conversation</p>
+            </div>
+          )}
         </div>
 
         <button className="fab" onClick={() => navigate('/messages/new')}>

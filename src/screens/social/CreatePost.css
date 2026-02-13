@@ -106,7 +106,22 @@
   margin-top: 16px;
 }
 
+.hidden-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.uploading-text {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin-top: 8px;
+}
+
 .media-item {
+  position: relative;
   aspect-ratio: 1;
   background-color: var(--grey);
   border-radius: 8px;
@@ -120,6 +135,32 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.media-item.video-item {
+  aspect-ratio: 16/9;
+}
+
+.media-item.video-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.media-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .post-mention-section {

@@ -1,44 +1,85 @@
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Button from '../../components/common/Button'
-import { Bell, Image, DoorOpen, Archive, ChevronRight } from 'lucide-react'
+import { Bell, Users, Loader } from 'lucide-react'
+import { chatService, Conversation, ConversationParticipant } from '../../services/chat.service'
 import './GroupInfo.css'
 
 const GroupInfo = () => {
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [conversation, setConversation] = useState<Conversation | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const members = [
-    { id: 1, name: 'Nadia', isAdmin: true, avatar: '👤' },
-    { id: 2, name: 'Jean-Pierre', isAdmin: true, avatar: '👤' },
-    { id: 3, name: 'Aisha', isAdmin: false, avatar: '👤' },
-    { id: 4, name: 'Fatou', isAdmin: false, avatar: '👤' },
-    { id: 5, name: 'Moussa', isAdmin: false, avatar: '👤' }
-  ]
+  useEffect(() => { loadInfo() }, [id])
+
+  const loadInfo = async () => {
+    try {
+      setLoading(true)
+      const conversations = await chatService.getConversations()
+      const conv = conversations.find(c => c.id === id)
+      setConversation(conv || null)
+    } catch (err) {
+      console.error('Erreur:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getMemberName = (p: ConversationParticipant) => {
+    if (p.user) return `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() || 'Membre'
+    return 'Membre'
+  }
+
+  if (loading) {
+    return (
+      <ScreenLayout title="Info groupe" showBack showBottomNav>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <Loader size={32} className="spin" />
+        </div>
+      </ScreenLayout>
+    )
+  }
+
+  if (!conversation) {
+    return (
+      <ScreenLayout title="Info groupe" showBack showBottomNav>
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <p>Groupe introuvable</p>
+        </div>
+      </ScreenLayout>
+    )
+  }
 
   return (
-    <ScreenLayout title="Group Info" showBack showBottomNav>
+    <ScreenLayout title="Info groupe" showBack showBottomNav>
       <div className="group-info">
         <div className="group-profile">
-          <div className="group-avatars">
-            <div className="group-avatar">👥</div>
-            <div className="group-avatar">👥</div>
+          <div className="group-avatar-large">
+            {conversation.avatar_url ? (
+              <img src={conversation.avatar_url} alt="" />
+            ) : (
+              <Users size={32} />
+            )}
           </div>
-          <h2 className="group-name">Les Amis</h2>
-          <p className="member-count">12 members</p>
+          <h2 className="group-name">{conversation.name || 'Groupe'}</h2>
+          <p className="member-count">{conversation.participants?.length || 0} membres</p>
         </div>
 
-        <Button variant="secondary" fullWidth>
-          Ajouter des participants
-        </Button>
-
         <div className="members-section">
-          <h3 className="section-title">Members</h3>
+          <h3 className="section-title">Membres</h3>
           <div className="members-list">
-            {members.map((member) => (
-              <div key={member.id} className="member-item">
-                <div className="member-avatar">{member.avatar}</div>
-                <span className="member-name">{member.name}</span>
-                {member.isAdmin && <span className="admin-badge">Admin</span>}
+            {conversation.participants?.map((p) => (
+              <div key={p.id} className="member-item" onClick={() => p.user && navigate(`/social/profile/${p.user.id}`)}>
+                <div className="member-avatar">
+                  {p.user?.avatar_url ? (
+                    <img src={p.user.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    getMemberName(p).charAt(0)
+                  )}
+                </div>
+                <span className="member-name">{getMemberName(p)}</span>
               </div>
             ))}
           </div>
@@ -48,22 +89,7 @@ const GroupInfo = () => {
           <div className="option-item">
             <Bell size={20} />
             <span>Notifications</span>
-            <input type="checkbox" className="toggle" />
-          </div>
-          <div className="option-item">
-            <Image size={20} />
-            <span>Media/files</span>
-            <ChevronRight size={20} />
-          </div>
-          <div className="option-item">
-            <DoorOpen size={20} />
-            <span>Quitter le group...</span>
-            <ChevronRight size={20} />
-          </div>
-          <div className="option-item">
-            <Archive size={20} />
-            <span>Archiver</span>
-            <ChevronRight size={20} />
+            <input type="checkbox" defaultChecked />
           </div>
         </div>
       </div>
@@ -72,6 +98,3 @@ const GroupInfo = () => {
 }
 
 export default GroupInfo
-
-
-

@@ -1,110 +1,121 @@
+import { useState, useEffect } from 'react'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import Button from '../../components/common/Button'
-import { Star } from 'lucide-react'
+import { Star, Loader } from 'lucide-react'
+import { bookingsService, Booking } from '../../services/bookings.service'
 import './ReviewsManagement.css'
 
 const ReviewsManagement = () => {
-  const reviews = [
-    { id: 1, author: 'Nadia', rating: 5, text: 'Excellent service!', images: ['🖼️', '🖼️'], hasReply: false },
-    { id: 2, author: 'Jean', rating: 5, text: 'Thank you for your kind words!', hasReply: true, isReply: true },
-    { id: 3, author: 'Marie', rating: 5, text: 'Very professional and high quality work.', hasReply: false }
-  ]
+  const [reviews, setReviews] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<number | null>(null)
+
+  useEffect(() => { loadReviews() }, [])
+
+  const loadReviews = async () => {
+    try {
+      setLoading(true)
+      const data = await bookingsService.getReviewsReceived()
+      setReviews(data)
+    } catch (err) {
+      console.error('Erreur chargement avis:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredReviews = filter ? reviews.filter(r => Math.round(r.rating || 0) === filter) : reviews
+
+  const avgRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
+    : 0
+
+  const ratingDistribution = [5, 4, 3, 2, 1].map(star => ({
+    star,
+    count: reviews.filter(r => Math.round(r.rating || 0) === star).length,
+    percent: reviews.length > 0
+      ? Math.round(reviews.filter(r => Math.round(r.rating || 0) === star).length / reviews.length * 100)
+      : 0,
+  }))
+
+  const getClientName = (b: Booking) => {
+    if (b.client) return `${b.client.first_name || ''} ${b.client.last_name || ''}`.trim() || 'Client'
+    return 'Client'
+  }
 
   return (
-    <ScreenLayout title="Reviews" showBack showBottomNav>
+    <ScreenLayout title="Avis" showBack showBottomNav>
       <div className="reviews-management">
-        <div className="overall-rating">
-          <div className="rating-display">
-            <span className="rating-number">4.8</span>
-            <div className="stars-large">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={24} fill={i < 4 ? 'currentColor' : 'none'} />
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+            <Loader size={32} className="spin" />
+          </div>
+        ) : (
+          <>
+            <div className="overall-rating">
+              <div className="rating-display">
+                <span className="rating-number">{avgRating.toFixed(1)}</span>
+                <div className="stars-large">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <Star key={i} size={24} fill={i <= Math.round(avgRating) ? '#FFB800' : 'none'} color="#FFB800" />
+                  ))}
+                </div>
+                <p>{reviews.length} avis</p>
+              </div>
+              <div className="rating-breakdown">
+                {ratingDistribution.map(({ star, percent }) => (
+                  <div key={star} className="breakdown-bar">
+                    <span>{star}</span>
+                    <div className="bar-container">
+                      <div className="bar-fill" style={{ width: `${percent}%` }} />
+                    </div>
+                    <span>{percent}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="filter-buttons">
+              <button className={`filter-btn ${filter === null ? 'active' : ''}`} onClick={() => setFilter(null)}>Tout</button>
+              {[5, 4, 3, 2, 1].map(s => (
+                <button key={s} className={`filter-btn ${filter === s ? 'active' : ''}`} onClick={() => setFilter(s)}>{s} <Star size={12} fill="currentColor" /></button>
               ))}
             </div>
-            <p>124 reviews</p>
-          </div>
-          <div className="rating-breakdown">
-            <div className="breakdown-bar">
-              <span>5</span>
-              <div className="bar-container">
-                <div className="bar-fill" style={{ width: '75%' }}></div>
-              </div>
-              <span>75%</span>
-            </div>
-            <div className="breakdown-bar">
-              <span>4</span>
-              <div className="bar-container">
-                <div className="bar-fill" style={{ width: '15%' }}></div>
-              </div>
-              <span>15%</span>
-            </div>
-            <div className="breakdown-bar">
-              <span>3</span>
-              <div className="bar-container">
-                <div className="bar-fill" style={{ width: '5%' }}></div>
-              </div>
-              <span>5%</span>
-            </div>
-            <div className="breakdown-bar">
-              <span>2</span>
-              <div className="bar-container">
-                <div className="bar-fill" style={{ width: '3%' }}></div>
-              </div>
-              <span>3%</span>
-            </div>
-            <div className="breakdown-bar">
-              <span>1</span>
-              <div className="bar-container">
-                <div className="bar-fill" style={{ width: '2%' }}></div>
-              </div>
-              <span>2%</span>
-            </div>
-          </div>
-        </div>
-        <div className="filter-buttons">
-          <button className="filter-btn active">Tout</button>
-          <button className="filter-btn">5 ★</button>
-          <button className="filter-btn">4 ★</button>
-          <button className="filter-btn">3 ★</button>
-          <button className="filter-btn">2 ★</button>
-          <button className="filter-btn">1 ★</button>
-        </div>
-        <div className="reviews-list">
-          {reviews.map((review) => (
-            <div key={review.id} className={`review-item ${review.isReply ? 'reply' : ''}`}>
-              <div className="review-avatar">👤</div>
-              <div className="review-content">
-                <div className="review-header">
-                  <span className="review-author">{review.author}</span>
-                  {!review.isReply && (
-                    <div className="review-stars">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={14} fill={i < review.rating ? 'currentColor' : 'none'} />
-                      ))}
+
+            <div className="reviews-list">
+              {filteredReviews.length === 0 ? (
+                <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>Aucun avis</p>
+              ) : (
+                filteredReviews.map((r) => (
+                  <div key={r.id} className="review-item">
+                    <div className="review-avatar">
+                      {r.client?.avatar_url ? (
+                        <img src={r.client.avatar_url} alt="" />
+                      ) : (
+                        getClientName(r).charAt(0)
+                      )}
                     </div>
-                  )}
-                </div>
-                <p className="review-text">{review.text}</p>
-                {review.images && (
-                  <div className="review-images">
-                    {review.images.map((img, i) => (
-                      <div key={i} className="review-image">{img}</div>
-                    ))}
+                    <div className="review-content">
+                      <div className="review-header">
+                        <span className="review-author">{getClientName(r)}</span>
+                        <div className="review-stars">
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <Star key={i} size={14} fill={i <= (r.rating || 0) ? '#FFB800' : 'none'} color="#FFB800" />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="review-service">{r.service?.title || ''}</p>
+                      {r.review && <p className="review-text">{r.review}</p>}
+                      <p className="review-date">{new Date(r.updated_at).toLocaleDateString('fr-FR')}</p>
+                    </div>
                   </div>
-                )}
-                {!review.hasReply && !review.isReply && (
-                  <Button variant="outline" className="reply-btn">Reply</Button>
-                )}
-              </div>
+                ))
+              )}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
     </ScreenLayout>
   )
 }
 
 export default ReviewsManagement
-
-
-

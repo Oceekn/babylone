@@ -1,102 +1,116 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Button from '../../components/common/Button'
-import { Bell, Star, Heart, MessageCircle, Share2 } from 'lucide-react'
+import { Bell, Star, Loader } from 'lucide-react'
+import { bookingsService, Booking } from '../../services/bookings.service'
 import './ProfessionalDashboard.css'
 
 const ProfessionalDashboard = () => {
   const navigate = useNavigate()
-  
+  const [loading, setLoading] = useState(true)
+  const [todayBookings, setTodayBookings] = useState<Booking[]>([])
+  const [monthRevenue, setMonthRevenue] = useState(0)
+  const [avgRating, setAvgRating] = useState(0)
+  const [totalReviews, setTotalReviews] = useState(0)
+
+  useEffect(() => { loadStats() }, [])
+
+  const loadStats = async () => {
+    try {
+      setLoading(true)
+      const stats = await bookingsService.getStats()
+      setTodayBookings(stats.todayBookings || [])
+      setMonthRevenue(stats.monthRevenue || 0)
+      setAvgRating(stats.avgRating || 0)
+      setTotalReviews(stats.totalReviews || 0)
+    } catch (err) {
+      console.error('Erreur chargement stats:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getClientName = (b: Booking) => {
+    if (b.client) {
+      return `${b.client.first_name || ''} ${b.client.last_name || ''}`.trim() || 'Client'
+    }
+    return 'Client'
+  }
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const greeting = user.first_name ? `Bonjour, ${user.first_name}` : 'Bonjour'
+
   return (
-    <ScreenLayout
-      title="Dashboard"
-      rightAction={<Bell size={24} />}
-      showBottomNav
-    >
+    <ScreenLayout title="Dashboard" rightAction={<Bell size={24} />} showBottomNav>
       <div className="professional-dashboard">
-        <h2 className="greeting">Bonjour, Awa</h2>
-        <div className="metrics-grid">
-          <div className="metric-card">
-            <p className="metric-label">Réservations du jour</p>
-            <p className="metric-value">2</p>
+        <h2 className="greeting">{greeting}</h2>
+
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+            <Loader size={32} className="spin" />
           </div>
-          <div className="metric-card">
-            <p className="metric-label">Revenus du mois</p>
-            <p className="metric-value">1,200,000 FCFA</p>
-          </div>
-          <div className="metric-card">
-            <p className="metric-label">Note moyenne</p>
-            <p className="metric-value">4.8 ★</p>
-          </div>
-          <div className="metric-card">
-            <p className="metric-label">Profil vues</p>
-            <p className="metric-value">150</p>
-          </div>
-        </div>
-        <div className="today-reservations">
-          <h3>Réservations d'aujourd'hui</h3>
-          <div 
-            className="reservation-item"
-            onClick={() => navigate('/professional/bookings/active/1')}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="res-avatar">👤</div>
-            <div className="res-info">
-              <p className="res-service">Coiffure avec Fatou</p>
-              <p className="res-time">10:00 AM - 11:00 AM</p>
+        ) : (
+          <>
+            <div className="metrics-grid">
+              <div className="metric-card">
+                <p className="metric-label">Reservations du jour</p>
+                <p className="metric-value">{todayBookings.length}</p>
+              </div>
+              <div className="metric-card">
+                <p className="metric-label">Revenus du mois</p>
+                <p className="metric-value">{monthRevenue.toLocaleString('fr-FR')} FCFA</p>
+              </div>
+              <div className="metric-card">
+                <p className="metric-label">Note moyenne</p>
+                <p className="metric-value">{avgRating > 0 ? `${avgRating.toFixed(1)} ` : '- '}<Star size={14} fill={avgRating > 0 ? 'currentColor' : 'none'} style={{ verticalAlign: 'middle' }} /></p>
+              </div>
+              <div className="metric-card">
+                <p className="metric-label">Total avis</p>
+                <p className="metric-value">{totalReviews}</p>
+              </div>
             </div>
-          </div>
-          <div 
-            className="reservation-item"
-            onClick={() => navigate('/professional/bookings/active/2')}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="res-avatar">👤</div>
-            <div className="res-info">
-              <p className="res-service">Manucure avec Amina</p>
-              <p className="res-time">12:00 PM - 01:00 PM</p>
+
+            <div className="today-reservations">
+              <h3>Reservations d'aujourd'hui</h3>
+              {todayBookings.length === 0 ? (
+                <p style={{ color: '#888', fontSize: '14px' }}>Aucune reservation aujourd'hui</p>
+              ) : (
+                todayBookings.map((b) => (
+                  <div
+                    key={b.id}
+                    className="reservation-item"
+                    onClick={() => navigate(`/professional/bookings/active/${b.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="res-avatar">
+                      {b.client?.avatar_url ? (
+                        <img src={b.client.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        getClientName(b).charAt(0)
+                      )}
+                    </div>
+                    <div className="res-info">
+                      <p className="res-service">{b.service?.title || 'Service'} avec {getClientName(b)}</p>
+                      <p className="res-time">
+                        {new Date(b.scheduled_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        {b.duration_minutes && ` - ${b.duration_minutes} min`}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          </div>
-        </div>
+          </>
+        )}
+
         <div className="quick-actions">
           <Button variant="outline" fullWidth onClick={() => navigate('/professional/calendar')}>
             Voir calendrier
           </Button>
           <Button variant="outline" fullWidth onClick={() => navigate('/professional/services')}>
-            Gérer services
+            Gerer services
           </Button>
-        </div>
-        <div className="recent-reviews">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3>Avis récents</h3>
-            <button 
-              onClick={() => navigate('/professional/reviews')}
-              style={{ background: 'none', border: 'none', color: '#125CED', cursor: 'pointer', fontSize: '14px' }}
-            >
-              Voir tout
-            </button>
-          </div>
-          <div className="review-card">
-            <div className="review-header">
-              <div className="review-avatar">👤</div>
-              <div>
-                <p className="review-author">Nadia</p>
-                <div className="review-stars">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} fill="currentColor" />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <p className="review-text">
-              Fatou est une coiffeuse exceptionnelle. Elle a compris exactement ce que je voulais et a fait un travail incroyable. Je suis très satisfaite et je la recommande vivement.
-            </p>
-            <div className="review-engagement">
-              <button><Heart size={18} /> 2</button>
-              <button><MessageCircle size={18} /> 0</button>
-              <button><Share2 size={18} /></button>
-            </div>
-          </div>
         </div>
       </div>
     </ScreenLayout>
@@ -104,4 +118,3 @@ const ProfessionalDashboard = () => {
 }
 
 export default ProfessionalDashboard
-

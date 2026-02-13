@@ -1,0 +1,77 @@
+services:
+  # PostgreSQL avec PostGIS
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: babylone_postgres
+    environment:
+      POSTGRES_USER: babylone_user
+      POSTGRES_PASSWORD: babylone_secure_pass_2024
+      POSTGRES_DB: babylone_prod
+      # Accepter toutes les connexions sans verifier le mot de passe (dev uniquement)
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - babylone_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U babylone_user -d babylone_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis pour Cache et WebSocket Adapter
+  redis:
+    image: redis:7-alpine
+    container_name: babylone_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - babylone_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-babylone_redis_pass_2024}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # MinIO pour le stockage des fichiers
+  minio:
+    image: minio/minio:latest
+    container_name: babylone_minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-babylone_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-babylone_minio_pass_2024}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - babylone_network
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  babylone_network:
+    driver: bridge
+

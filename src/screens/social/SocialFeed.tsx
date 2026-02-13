@@ -1,31 +1,146 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import { Settings, Heart, MessageCircle, Share2, Camera, Search } from 'lucide-react'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
+import { socialService, Post } from '../../services/social.service'
+import { api } from '../../services/api'
 import './SocialFeed.css'
+
+interface Story {
+  id: string
+  user_id: string
+  text?: string
+  media_url?: string
+  views_count: number
+  user?: { id: string; first_name?: string; last_name?: string; avatar_url?: string }
+}
+
+interface SocialGroup {
+  id: string
+  name: string
+  members: number
+  description: string
+  category: string
+  joined: boolean
+}
+
+const defaultGroups: SocialGroup[] = [
+  { id: 'g1', name: 'Cercle des Amis', members: 123, description: 'Un groupe pour les amis pour partager des moments et planifier des activites.', category: 'Loisirs', joined: false },
+  { id: 'g2', name: 'Entrepreneurs du Cameroun', members: 456, description: 'Un reseau pour les entrepreneurs camerounais pour se connecter et collaborer.', category: 'Professionnels', joined: true },
+  { id: 'g3', name: 'Yaounde City Life', members: 789, description: 'Un groupe communautaire pour les residents de Yaounde.', category: 'Locaux', joined: false },
+  { id: 'g4', name: 'Artistes Locaux', members: 234, description: 'Une communaute pour les artistes locaux.', category: 'Loisirs', joined: false },
+  { id: 'g5', name: 'Fitness Douala', members: 567, description: 'Groupe de fitness pour les habitants de Douala.', category: 'Loisirs', joined: true },
+]
 
 const SocialFeed = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'pour-vous' | 'amis' | 'groupes'>('pour-vous')
   const [searchQuery, setSearchQuery] = useState('')
+  const [posts, setPosts] = useState<Post[]>([])
+  const [stories, setStories] = useState<Story[]>([])
+  const [groups, setGroups] = useState<SocialGroup[]>(() => {
+    const stored = localStorage.getItem('social_groups')
+    return stored ? JSON.parse(stored) : defaultGroups
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined)
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
 
-  const stories = [
-    { name: 'Mireille', avatar: '👤' },
-    { name: 'Jean', avatar: '👤' },
-    { name: 'Aicha', avatar: '👤' },
-    { name: 'Pierre', avatar: '👤' },
-    { name: 'Fati', avatar: '👤' }
-  ]
+  // Charger le feed et les stories depuis le backend
+  useEffect(() => {
+    if (activeTab === 'pour-vous' || activeTab === 'amis') {
+      loadFeed(true)
+      loadStories()
+    }
+  }, [activeTab])
 
-  const groups = [
-    { id: 1, name: 'Cercle des Amis', members: 123, description: 'Un groupe pour les amis pour partager des moments et planifier des activités.', image: '👥', isMember: false },
-    { id: 2, name: 'Entrepreneurs du Cameroun', members: 456, description: 'Un réseau pour les entrepreneurs camerounais pour se connecter et collaborer.', image: '💼', isMember: true },
-    { id: 3, name: 'Yaoundé City Life', members: 789, description: 'Un groupe communautaire pour les résidents de Yaoundé pour discuter des événements locaux et services.', image: '🏙️', isMember: false },
-    { id: 4, name: 'Artistes Locaux', members: 234, description: 'Une communauté pour les artistes locaux.', image: '🎨', isMember: false },
-    { id: 5, name: 'Fitness Douala', members: 567, description: 'Groupe de fitness pour les habitants de Douala.', image: '💪', isMember: true }
-  ]
+  const loadStories = async () => {
+    try {
+      const data = await api.get<Story[]>('/social/stories')
+      setStories(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Erreur chargement stories:', err)
+      setStories([])
+    }
+  }
+
+  const loadFeed = async (reset = false) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const cursor = reset ? undefined : nextCursor
+      const response = await socialService.getFeed({
+        limit: 10,
+        cursor,
+        pays_code: 'CM',
+      })
+      const newPosts = response.posts || []
+      if (reset) {
+        setPosts(newPosts)
+      } else {
+        setPosts((prev) => {
+          const ids = new Set(prev.map((p) => p.id))
+          const added = newPosts.filter((p) => !ids.has(p.id))
+          return prev.concat(added)
+        })
+      }
+      setNextCursor(response.nextCursor)
+    } catch (err: unknown) {
+      console.error('Erreur lors du chargement du feed:', err)
+      setError('Erreur lors du chargement du feed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLike = async (postId: string) => {
+    try {
+      const response = await socialService.toggleLike(postId)
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { ...post, likes_count: response.likes_count }
+          : post
+      ))
+      
+      // Mettre à jour l'état des likes
+      const newLikedPosts = new Set(likedPosts)
+      if (response.liked) {
+        newLikedPosts.add(postId)
+      } else {
+        newLikedPosts.delete(postId)
+      }
+      setLikedPosts(newLikedPosts)
+    } catch (err: any) {
+      console.error('Erreur lors du like:', err)
+    }
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return `${diffInSeconds}s`
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`
+    return `${Math.floor(diffInSeconds / 86400)}j`
+  }
+
+  const getUserName = (post: Post) => {
+    if (post.user) {
+      return `${post.user.first_name || ''} ${post.user.last_name || ''}`.trim() || 'Utilisateur'
+    }
+    return 'Utilisateur'
+  }
+
+  const handleJoinGroup = (groupId: string) => {
+    const updated = groups.map(g => g.id === groupId ? { ...g, joined: !g.joined, members: g.joined ? g.members - 1 : g.members + 1 } : g)
+    setGroups(updated)
+    localStorage.setItem('social_groups', JSON.stringify(updated))
+  }
 
   const filteredGroups = groups.filter(group =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -47,12 +162,23 @@ const SocialFeed = () => {
               </div>
               <span className="story-name">Ma story</span>
             </div>
-            {stories.map((story, index) => (
-              <div key={index} className="story-item">
-                <div className="story-avatar">{story.avatar}</div>
-                <span className="story-name">{story.name}</span>
-              </div>
-            ))}
+            {stories.map((story) => {
+              const storyName = story.user
+                ? (story.user.first_name || 'Utilisateur')
+                : 'Utilisateur'
+              return (
+                <div key={story.id} className="story-item" onClick={() => navigate(`/social/story/${story.id}`)}>
+                  <div className="story-avatar">
+                    {story.media_url ? (
+                      <img src={story.media_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      storyName.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <span className="story-name">{storyName}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -96,27 +222,27 @@ const SocialFeed = () => {
                     className="group-card"
                     onClick={() => navigate(`/social/group/${group.id}`)}
                   >
-                    <div className="group-image">{group.image}</div>
+                    <div className="group-image">{group.name.charAt(0)}</div>
                     <div className="group-info">
                       <h3 className="group-name">{group.name}</h3>
                       <p className="group-members">{group.members} membres</p>
                       <p className="group-description">{group.description}</p>
                       <Button
-                        variant={group.isMember ? 'outline' : 'secondary'}
+                        variant={group.joined ? 'outline' : 'secondary'}
                         className="join-btn"
                         onClick={(e) => {
                           e.stopPropagation()
-                          // Handle join/leave group logic here
+                          handleJoinGroup(group.id)
                         }}
                       >
-                        {group.isMember ? 'Membre' : 'Rejoindre'}
+                        {group.joined ? 'Membre' : 'Rejoindre'}
                       </Button>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="no-results">
-                  <p>Aucun groupe trouvé</p>
+                  <p>Aucun groupe trouve</p>
                 </div>
               )}
             </div>
@@ -125,7 +251,7 @@ const SocialFeed = () => {
           <>
             <div className="create-post-section">
               <div className="create-post-input" onClick={() => navigate('/social/create-post')}>
-                <div className="create-avatar">👤</div>
+                <div className="create-avatar">+</div>
                 <span>Créer une publication...</span>
                 <div className="create-post-icons">
                   <Search 
@@ -142,41 +268,73 @@ const SocialFeed = () => {
             </div>
 
             <div className="feed-posts">
-          <div className="post-card">
-            <div className="post-image">🏪</div>
-            <div className="post-content">
-              <div className="post-header">
-                <span className="post-author">Mireille</span>
-                <span className="post-time">1d</span>
-              </div>
-              <p className="post-text">
-                Discovering the vibrant markets of Douala! The colors, the sounds, the energy - it is an experience like no other. #DoualaVibes #MarketLife
-              </p>
-              <div className="post-engagement">
-                <button><Heart size={18} /> 23</button>
-                <button><MessageCircle size={18} /> 12</button>
-                <button><Share2 size={18} /> 6</button>
-              </div>
-            </div>
-          </div>
-
-          <div className="post-card">
-            <div className="post-image">⚽</div>
-            <div className="post-content">
-              <div className="post-header">
-                <span className="post-author">Jean</span>
-                <span className="post-time">2d</span>
-              </div>
-              <p className="post-text">
-                Just finished a great game of football with the guys. Nothing beats the camaraderie and the thrill of the game. #FootballLife #Cameroon
-              </p>
-              <div className="post-engagement">
-                <button><Heart size={18} /> 45</button>
-                <button><MessageCircle size={18} /> 20</button>
-                <button><Share2 size={18} /> 10</button>
-              </div>
-            </div>
-          </div>
+              {loading && posts.length === 0 ? (
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                  <p>Chargement...</p>
+                </div>
+              ) : error && posts.length === 0 ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#FF3131' }}>
+                  <p>{error}</p>
+                  <Button variant="outline" onClick={() => loadFeed(true)} style={{ marginTop: '10px' }}>
+                    Réessayer
+                  </Button>
+                </div>
+              ) : posts.length > 0 ? (
+                posts.map((post) => (
+                  <div key={post.id} className="post-card">
+                    {post.image_url && (
+                      <img src={post.image_url} alt="Post" className="post-image" />
+                    )}
+                    <div className="post-content">
+                      <div className="post-header">
+                        <span className="post-author">{getUserName(post)}</span>
+                        <span className="post-time">{formatTime(post.created_at)}</span>
+                      </div>
+                      {post.content && (
+                        <p className="post-text">{post.content}</p>
+                      )}
+                      <div className="post-engagement">
+                        <button 
+                          onClick={() => handleLike(post.id)}
+                          style={{ 
+                            color: likedPosts.has(post.id) ? '#FF3131' : 'inherit' 
+                          }}
+                        >
+                          <Heart 
+                            size={18} 
+                            fill={likedPosts.has(post.id) ? '#FF3131' : 'none'} 
+                          />{' '}
+                          {post.likes_count || 0}
+                        </button>
+                        <button 
+                          onClick={() => navigate(`/social/post/${post.id}`)}
+                        >
+                          <MessageCircle size={18} /> {post.comments_count || 0}
+                        </button>
+                        <button onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({ title: getUserName(post), text: post.content || '', url: window.location.href })
+                          }
+                        }}>
+                          <Share2 size={18} /> {post.shares_count || 0}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                  <p>Aucun post à afficher</p>
+                </div>
+              )}
+              
+              {nextCursor && (
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                  <Button variant="outline" onClick={() => loadFeed(false)} disabled={loading}>
+                    {loading ? 'Chargement...' : 'Charger plus'}
+                  </Button>
+                </div>
+              )}
             </div>
           </>
         )}

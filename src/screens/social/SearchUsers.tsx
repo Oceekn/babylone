@@ -3,26 +3,35 @@ import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
-import { Search } from 'lucide-react'
+import { Search, Loader } from 'lucide-react'
+import { usersService, User } from '../../services/users.service'
 import './SearchUsers.css'
 
 const SearchUsers = () => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
 
-  const users = [
-    { id: 1, name: 'Aisha N.', title: 'Digital Artist', avatar: '👤', isFriend: false },
-    { id: 2, name: 'Jean-Pierre', title: 'Photographer', avatar: '👤', isFriend: true },
-    { id: 3, name: 'Fatou', title: 'Designer', avatar: '👤', isFriend: false },
-    { id: 4, name: 'Moussa', title: 'Developer', avatar: '👤', isFriend: false },
-    { id: 5, name: 'Marie', title: 'Artist', avatar: '👤', isFriend: true },
-    { id: 6, name: 'Pierre', title: 'Writer', avatar: '👤', isFriend: false }
-  ]
-
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.title.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+    if (query.trim().length < 2) {
+      setUsers([])
+      setSearched(false)
+      return
+    }
+    try {
+      setLoading(true)
+      setSearched(true)
+      const results = await usersService.searchUsers(query.trim())
+      setUsers(results)
+    } catch (err) {
+      console.error('Erreur recherche:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <ScreenLayout title="Rechercher des utilisateurs" showBack showBottomNav>
@@ -32,38 +41,52 @@ const SearchUsers = () => {
             placeholder="Rechercher un utilisateur..."
             icon={<Search size={20} />}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="search-input"
           />
         </div>
 
         <div className="users-list">
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+              <Loader size={24} className="spin" />
+            </div>
+          ) : users.length > 0 ? (
+            users.map((user) => (
               <div
                 key={user.id}
                 className="user-item"
                 onClick={() => navigate(`/social/profile/${user.id}`)}
               >
-                <div className="user-avatar">{user.avatar}</div>
+                <div className="user-avatar">
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    `${user.first_name?.charAt(0) || ''}${user.last_name?.charAt(0) || ''}`
+                  )}
+                </div>
                 <div className="user-info">
-                  <span className="user-name">{user.name}</span>
-                  <span className="user-title">{user.title}</span>
+                  <span className="user-name">{user.first_name} {user.last_name}</span>
+                  <span className="user-title">{user.telephone || user.email || ''}</span>
                 </div>
                 <Button
-                  variant={user.isFriend ? 'outline' : 'secondary'}
+                  variant="outline"
                   onClick={(e) => {
                     e.stopPropagation()
-                    // Handle add friend logic here
+                    navigate(`/social/profile/${user.id}`)
                   }}
                 >
-                  {user.isFriend ? 'Ami' : 'Ajouter'}
+                  Voir
                 </Button>
               </div>
             ))
+          ) : searched ? (
+            <div className="no-results">
+              <p>Aucun utilisateur trouve</p>
+            </div>
           ) : (
             <div className="no-results">
-              <p>Aucun utilisateur trouvé</p>
+              <p style={{ color: '#888' }}>Tapez au moins 2 caracteres pour rechercher</p>
             </div>
           )}
         </div>
@@ -73,6 +96,3 @@ const SearchUsers = () => {
 }
 
 export default SearchUsers
-
-
-
