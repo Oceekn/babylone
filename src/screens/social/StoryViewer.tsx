@@ -4,6 +4,7 @@ import ScreenLayout from '../../components/common/ScreenLayout'
 import { Eye, X, MessageCircle, Loader } from 'lucide-react'
 import { api } from '../../services/api'
 import { authService } from '../../services/auth.service'
+import { chatService } from '../../services/chat.service'
 import { formatTimeAgo } from '../../utils/date'
 import './StoryViewer.css'
 
@@ -67,6 +68,9 @@ const StoryViewer = () => {
   const [showViewersModal, setShowViewersModal] = useState(false)
   const [viewers, setViewers] = useState<StoryViewRow[]>([])
   const [loadingViewers, setLoadingViewers] = useState(false)
+  const [replyText, setReplyText] = useState('')
+  const [replySending, setReplySending] = useState(false)
+  const [replySent, setReplySent] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -202,8 +206,23 @@ const StoryViewer = () => {
     return `il y a ${ago}`
   }
 
-  const handleReply = () => {
-    if (currentStory?.user?.id) navigate(`/messages/chat/${currentStory.user.id}`)
+  const handleReplySubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    const authorId = currentStory?.user?.id
+    const text = replyText.trim()
+    if (!authorId || !text || replySending) return
+    try {
+      setReplySending(true)
+      const conv = await chatService.createIndividualConversation(authorId)
+      await chatService.sendMessageRest(conv.id, text)
+      setReplySent(true)
+      setReplyText('')
+      setTimeout(() => setReplySent(false), 2000)
+    } catch (err) {
+      console.error('Erreur envoi réponse story:', err)
+    } finally {
+      setReplySending(false)
+    }
   }
 
   const openViewersModal = useCallback(async () => {
@@ -320,12 +339,31 @@ const StoryViewer = () => {
               <button key={emoji} type="button" className="story-reaction-btn" onClick={() => handleReaction(emoji)}>{emoji}</button>
             ))}
           </div>
-          <div className="story-reply-row">
-            <input type="text" className="story-reply-input" placeholder="Répondre en message privé..." readOnly onClick={handleReply} />
-            <button type="button" className="story-reply-btn" onClick={handleReply} aria-label="Répondre">
-              <MessageCircle size={22} />
-            </button>
-          </div>
+          {!isMyStory && (
+            <form className="story-reply-row" onSubmit={handleReplySubmit}>
+              <input
+                type="text"
+                className="story-reply-input"
+                placeholder="Répondre en message privé..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onFocus={() => setPaused(true)}
+                onBlur={() => setPaused(false)}
+                onClick={(e) => e.stopPropagation()}
+                disabled={replySending}
+                maxLength={500}
+              />
+              <button
+                type="submit"
+                className="story-reply-btn"
+                disabled={replySending || !replyText.trim()}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Envoyer"
+              >
+                {replySent ? <span className="story-reply-sent">Envoyé</span> : <MessageCircle size={22} />}
+              </button>
+            </form>
+          )}
           <div
             className={`story-views ${isMyStory ? 'story-views-clickable' : ''}`}
             role={isMyStory ? 'button' : undefined}

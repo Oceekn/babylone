@@ -107,6 +107,7 @@ export const API_ENDPOINTS = {
     CREATE_INDIVIDUAL: '/chat/conversations/individual',
     CREATE_GROUP: '/chat/conversations/group',
     GET_MESSAGES: (conversationId: string) => `/chat/conversations/${conversationId}/messages`,
+    SEND_MESSAGE: (conversationId: string) => `/chat/conversations/${conversationId}/messages`,
     MARK_AS_READ: (conversationId: string) => `/chat/conversations/${conversationId}/read`,
   },
   

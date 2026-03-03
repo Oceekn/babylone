@@ -262,6 +262,16 @@
   justify-content: center;
 }
 
+.story-reply-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.story-reply-sent {
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .story-views {
   display: flex;
   align-items: center;

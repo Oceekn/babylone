@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -24,10 +25,12 @@ export class ChatController {
   @Post('conversations/individual')
   @UseGuards(JwtAuthGuard)
   async createIndividualConversation(
-    @Body() body: { userId: string },
+    @Body() body: { userId?: string; user_id?: string },
     @Request() req,
   ) {
-    return this.chatService.createIndividualConversation(req.user.id, body.userId);
+    const userId2 = body.userId ?? body.user_id;
+    if (!userId2) throw new BadRequestException('userId ou user_id requis');
+    return this.chatService.createIndividualConversation(req.user.id, userId2);
   }
 
   @Post('conversations/group')
@@ -60,6 +63,21 @@ export class ChatController {
   async markAsRead(@Param('conversationId') conversationId: string, @Request() req) {
     await this.chatService.markAsRead(conversationId, req.user.id);
     return { success: true };
+  }
+
+  @Post('conversations/:conversationId/messages')
+  @UseGuards(JwtAuthGuard)
+  async sendMessage(
+    @Param('conversationId') conversationId: string,
+    @Body() body: { content: string },
+    @Request() req,
+  ) {
+    const message = await this.chatService.createMessage({
+      conversationId,
+      userId: req.user.id,
+      content: body.content?.trim() || '',
+    });
+    return message;
   }
 }
 

@@ -3,6 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class HealthService {
@@ -12,6 +13,7 @@ export class HealthService {
   constructor(
     @InjectDataSource() private dataSource: DataSource,
     private configService: ConfigService,
+    private storageService: StorageService,
   ) {
     // Initialiser le client Redis pour les health checks
     this.redisClient = createClient({
@@ -49,7 +51,7 @@ export class HealthService {
       services: {
         database: await this.checkDatabase(),
         redis: await this.checkRedis(),
-        minio: await this.checkMinIO(),
+        storage: this.checkStorage(),
       },
       system: {
         memory: process.memoryUsage(),
@@ -107,45 +109,9 @@ export class HealthService {
     }
   }
 
-  private async checkMinIO(): Promise<{ status: string; latency?: number }> {
-    try {
-      const minioEndpoint = this.configService.get<string>('MINIO_ENDPOINT', 'localhost');
-      const minioPort = this.configService.get<number>('MINIO_PORT', 9000);
-      const url = `http://${minioEndpoint}:${minioPort}/minio/health/live`;
-
-      const start = Date.now();
-      // Utiliser http ou https selon la disponibilité
-      const http = await import('http');
-      const https = await import('https');
-      const urlObj = new URL(url);
-      const client = urlObj.protocol === 'https:' ? https : http;
-
-      await new Promise<void>((resolve, reject) => {
-        const req = client.get(url, { timeout: 5000 }, (res) => {
-          if (res.statusCode === 200) {
-            resolve();
-          } else {
-            reject(new Error(`Status: ${res.statusCode}`));
-          }
-        });
-        req.on('error', reject);
-        req.on('timeout', () => {
-          req.destroy();
-          reject(new Error('Timeout'));
-        });
-      });
-
-      const latency = Date.now() - start;
-
-      return {
-        status: 'ok',
-        latency,
-      };
-    } catch (error) {
-      this.logger.error('MinIO health check failed', error);
-      return {
-        status: 'error',
-      };
-    }
+  private checkStorage(): { status: string } {
+    return {
+      status: this.storageService.isAvailable() ? 'ok' : 'error',
+    };
   }
 }

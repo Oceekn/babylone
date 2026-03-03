@@ -19,11 +19,18 @@ export class ChatService {
 
   // Créer une conversation individuelle
   async createIndividualConversation(userId1: string, userId2: string): Promise<Conversation> {
-    // Vérifier si une conversation existe déjà
+    if (!userId1 || !userId2) {
+      throw new NotFoundException('userId requis');
+    }
+    if (userId1 === userId2) {
+      throw new ForbiddenException('Impossible de créer une conversation avec vous-même');
+    }
+
+    // Vérifier si une conversation existe déjà (join sur l'entité pour respecter le schema)
     const existing = await this.conversationsRepository
       .createQueryBuilder('conversation')
-      .innerJoin('conversation_participants', 'p1', 'p1.conversation_id = conversation.id')
-      .innerJoin('conversation_participants', 'p2', 'p2.conversation_id = conversation.id')
+      .innerJoin(ConversationParticipant, 'p1', 'p1.conversation_id = conversation.id')
+      .innerJoin(ConversationParticipant, 'p2', 'p2.conversation_id = conversation.id')
       .where('p1.user_id = :userId1', { userId1 })
       .andWhere('p2.user_id = :userId2', { userId2 })
       .andWhere('conversation.type = :type', { type: ConversationType.INDIVIDUAL })

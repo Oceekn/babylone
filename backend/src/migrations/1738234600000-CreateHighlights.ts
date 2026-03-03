@@ -1,7 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+function getRows(result: unknown): unknown[] {
+  return Array.isArray(result) ? result : (result as { rows?: unknown[] })?.rows ?? [];
+}
+
 export class CreateHighlights1738234600000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const r = await queryRunner.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'babylone' AND table_name = 'users') as exists`);
+    if (!getRows(r)[0] || !(getRows(r)[0] as { exists?: boolean }).exists) return;
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS babylone.highlights (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

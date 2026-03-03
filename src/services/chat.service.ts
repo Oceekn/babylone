@@ -75,6 +75,11 @@ class ChatService {
     });
   }
 
+  // Envoyer un message via REST (ex. réponse à une story sans ouvrir le chat)
+  async sendMessageRest(conversationId: string, content: string): Promise<Message> {
+    return api.post<Message>(API_ENDPOINTS.CHAT.SEND_MESSAGE(conversationId), { content });
+  }
+
   // Obtenir les messages d'une conversation
   async getMessages(conversationId: string, params: MessagesParams = {}): Promise<{ messages: Message[]; nextCursor?: string }> {
     const queryParams: any = {}
