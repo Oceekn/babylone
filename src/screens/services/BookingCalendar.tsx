@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Button from '../../components/common/Button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader } from 'lucide-react'
+import { bookingsService } from '../../services/bookings.service'
 import './BookingCalendar.css'
 
 interface BookingFlow {
@@ -23,6 +24,8 @@ const BookingCalendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [notes, setNotes] = useState('')
   const [address, setAddress] = useState('')
+  const [availableSlots, setAvailableSlots] = useState<string[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem('bookingFlow')
@@ -33,12 +36,22 @@ const BookingCalendar = () => {
     }
   }, [])
 
-  const timeSlots = [
-    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-    '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-  ]
+  useEffect(() => {
+    if (!bookingFlow?.professionalId || !selectedDate) {
+      setAvailableSlots([])
+      return
+    }
+    setSelectedTime(null)
+    const dateStr = selectedDate.getFullYear() + '-' +
+      String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' +
+      String(selectedDate.getDate()).padStart(2, '0')
+    setLoadingSlots(true)
+    bookingsService.getAvailability(bookingFlow.professionalId, dateStr)
+      .then((slots) => setAvailableSlots(slots.map((s) => s.time)))
+      .catch(() => setAvailableSlots([]))
+      .finally(() => setLoadingSlots(false))
+  }, [bookingFlow?.professionalId, selectedDate])
+
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -158,17 +171,24 @@ const BookingCalendar = () => {
           <>
             <div className="time-selection">
               <h3>Choisissez une heure</h3>
-              <div className="time-slots">
-                {timeSlots.map((time) => (
-                  <button
-                    key={time}
-                    className={`time-slot ${selectedTime === time ? 'selected' : ''}`}
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
+              {loadingSlots ? (
+                <div className="time-slots-loading"><Loader size={24} className="spin" /> Chargement des créneaux...</div>
+              ) : availableSlots.length === 0 ? (
+                <p className="time-slots-empty">Aucun créneau disponible ce jour-là.</p>
+              ) : (
+                <div className="time-slots">
+                  {availableSlots.map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      className={`time-slot ${selectedTime === time ? 'selected' : ''}`}
+                      onClick={() => setSelectedTime(time)}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="booking-extras">

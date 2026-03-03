@@ -61,7 +61,7 @@ const CallScreen = () => {
     const socket = chatSocketService.getSocket()
     if (!socket) return
 
-    socket.on('call_offer', async (data: any) => {
+    socket.on('call_offer', async (_data: any) => {
       // Recevoir un appel entrant (gere en dehors de cette page normalement)
     })
 

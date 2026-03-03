@@ -7,6 +7,11 @@
   position: relative;
 }
 
+/* Fond client (écrans non professionnels) */
+.screen-layout:not([data-professional="true"]) {
+  background-color: var(--client-bg);
+}
+
 .screen-layout.auth-screen {
   background-color: #EFF6FF;
 }
@@ -58,6 +63,8 @@
   color: var(--primary-blue);
 }
 
+/* Couleurs client (pas l’espace pro) */
+
 .header-button:active {
   opacity: 0.7;
 }
@@ -68,8 +75,19 @@
   color: var(--text-dark);
   margin: 0;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
+  display: block;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.header-title-custom {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .screen-content {

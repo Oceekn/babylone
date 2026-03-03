@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Booking, BookingStatus } from './entities/booking.entity';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingStatusDto, ReviewBookingDto } from './dto/update-booking.dto';
+import { UpdateBookingStatusDto, ReviewBookingDto, RescheduleBookingDto } from './dto/update-booking.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { TransactionsService } from '../transactions/transactions.service';
+
+const SLOT_STEP_MINUTES = 30;
+const WORK_START_HOUR = 8;
+const WORK_END_HOUR = 19;
 
 @Injectable()
 export class BookingsService {
@@ -16,7 +20,32 @@ export class BookingsService {
     private transactionsService: TransactionsService,
   ) {}
 
+  /** Vérifie qu'aucune réservation du professionnel ne chevauche le créneau */
+  private async checkNoOverlap(professionalId: string, scheduledAt: Date, durationMinutes: number, excludeBookingId?: string): Promise<void> {
+    const start = new Date(scheduledAt);
+    const end = new Date(start.getTime() + (durationMinutes || 60) * 60 * 1000);
+    const existing = await this.bookingsRepository.find({
+      where: {
+        professional_id: professionalId,
+        status: In([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS]),
+      },
+    });
+    for (const b of existing) {
+      if (excludeBookingId && b.id === excludeBookingId) continue;
+      const bStart = new Date(b.scheduled_at);
+      const bEnd = new Date(bStart.getTime() + (b.duration_minutes || 60) * 60 * 1000);
+      if (start.getTime() < bEnd.getTime() && end.getTime() > bStart.getTime()) {
+        throw new BadRequestException('Ce créneau est déjà pris. Choisissez une autre date ou heure.');
+      }
+    }
+  }
+
   async create(clientId: string, dto: CreateBookingDto): Promise<Booking> {
+    await this.checkNoOverlap(
+      dto.professional_id,
+      new Date(dto.scheduled_at),
+      dto.duration_minutes || 60,
+    );
     const booking = this.bookingsRepository.create({
       client_id: clientId,
       professional_id: dto.professional_id,
@@ -38,6 +67,11 @@ export class BookingsService {
     if (price <= 0) {
       throw new BadRequestException('Le prix doit etre positif');
     }
+    await this.checkNoOverlap(
+      dto.professional_id,
+      new Date(dto.scheduled_at),
+      dto.duration_minutes || 60,
+    );
 
     // Verifier le solde
     const hasFunds = await this.walletService.hasSufficientBalance(clientId, price);
@@ -45,7 +79,7 @@ export class BookingsService {
       throw new BadRequestException('Solde insuffisant dans le portefeuille');
     }
 
-    // Creer la reservation
+    // Creer la reservation en attente : le pro confirmera ou refusera
     const booking = this.bookingsRepository.create({
       client_id: clientId,
       professional_id: dto.professional_id,
@@ -56,7 +90,7 @@ export class BookingsService {
       currency: dto.currency || 'XAF',
       notes: dto.notes,
       address: dto.address,
-      status: BookingStatus.CONFIRMED,
+      status: BookingStatus.PENDING,
     });
     const savedBooking = await this.bookingsRepository.save(booking);
 
@@ -195,6 +229,51 @@ export class BookingsService {
     return booking;
   }
 
+  /** Créneaux disponibles pour un professionnel à une date (8h-19h, pas 30 min) */
+  async getAvailability(professionalId: string, dateStr: string): Promise<{ time: string }[]> {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      throw new BadRequestException('Date invalide');
+    }
+    const dayStart = new Date(date);
+    dayStart.setHours(WORK_START_HOUR, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(WORK_END_HOUR, 0, 0, 0);
+
+    const bookings = await this.bookingsRepository.find({
+      where: {
+        professional_id: professionalId,
+        status: In([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS]),
+      },
+    });
+    const busy: { start: number; end: number }[] = [];
+    for (const b of bookings) {
+      const bStart = new Date(b.scheduled_at);
+      const bEnd = new Date(bStart.getTime() + (b.duration_minutes || 60) * 60 * 1000);
+      if (bEnd > dayStart && bStart < dayEnd) {
+        busy.push({
+          start: Math.max(bStart.getTime(), dayStart.getTime()),
+          end: Math.min(bEnd.getTime(), dayEnd.getTime()),
+        });
+      }
+    }
+
+    const slots: { time: string }[] = [];
+    let slotStart = dayStart.getTime();
+    while (slotStart + SLOT_STEP_MINUTES * 60 * 1000 <= dayEnd.getTime()) {
+      const slotEnd = slotStart + (SLOT_STEP_MINUTES * 60 * 1000);
+      const isBusy = busy.some((b) => slotStart < b.end && slotEnd > b.start);
+      if (!isBusy) {
+        const d = new Date(slotStart);
+        const h = d.getHours();
+        const m = d.getMinutes();
+        slots.push({ time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` });
+      }
+      slotStart = slotEnd;
+    }
+    return slots;
+  }
+
   async updateStatus(
     id: string,
     userId: string,
@@ -228,11 +307,53 @@ export class BookingsService {
       throw new ForbiddenException('Seul le professionnel peut effectuer cette action');
     }
 
+    const previousStatus = booking.status;
     booking.status = dto.status as BookingStatus;
     if (dto.cancellation_reason) {
       booking.cancellation_reason = dto.cancellation_reason;
     }
 
+    const saved = await this.bookingsRepository.save(booking);
+
+    // Remboursement si annulation/refus après un paiement wallet
+    if ((dto.status === 'cancelled' || dto.status === 'rejected') && booking.price && booking.price > 0) {
+      const paymentTx = await this.transactionsService.findByBookingId(booking.id);
+      if (paymentTx) {
+        const amount = parseFloat(paymentTx.amount.toString());
+        try {
+          await this.transactionsService.createRefund(
+            booking.client_id,
+            amount,
+            `Remboursement réservation #${booking.id.substring(0, 8)}`,
+            { booking_id: booking.id },
+          );
+        } catch (refundErr) {
+          // Log but do not fail the status update
+          console.error('Refund failed for booking', booking.id, refundErr);
+        }
+      }
+    }
+
+    return saved;
+  }
+
+  async reschedule(id: string, userId: string, dto: RescheduleBookingDto): Promise<Booking> {
+    const booking = await this.findById(id);
+    const isClient = booking.client_id === userId;
+    const isProfessional = booking.professional?.user_id === userId;
+    if (!isClient && !isProfessional) {
+      throw new ForbiddenException('Vous ne pouvez pas modifier cette reservation');
+    }
+    if (booking.status !== BookingStatus.PENDING && booking.status !== BookingStatus.CONFIRMED) {
+      throw new BadRequestException('Seules les réservations en attente ou confirmées peuvent être reportées');
+    }
+    const newDate = new Date(dto.scheduled_at);
+    if (isNaN(newDate.getTime())) {
+      throw new BadRequestException('Date invalide');
+    }
+    const duration = booking.duration_minutes || 60;
+    await this.checkNoOverlap(booking.professional_id, newDate, duration, id);
+    booking.scheduled_at = newDate;
     return this.bookingsRepository.save(booking);
   }
 

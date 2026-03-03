@@ -12,7 +12,7 @@ function getSocket(): Socket | null {
   if (!token) return null;
   if (socketInstance?.connected) return socketInstance;
 
-  const url = `${API_CONFIG.SOCKET_URL}${NAMESPACE}`;
+  const url = `${API_CONFIG.getSocketUrl()}${NAMESPACE}`;
   socketInstance = io(url, {
     auth: { token },
     transports: ['websocket', 'polling'],

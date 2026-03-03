@@ -19,12 +19,14 @@ export interface Professional {
   rating: number;
   total_reviews: number;
   is_active: boolean;
+  created_at?: string;
   user?: {
     id: string;
     telephone: string;
     email?: string;
     first_name?: string;
     last_name?: string;
+    avatar_url?: string;
   };
 }
 
@@ -50,9 +52,11 @@ class ProfessionalsService {
     });
   }
 
-  // Professionnels populaires
-  async getPopular(): Promise<Professional[]> {
-    return api.get<Professional[]>('/professionals/popular');
+  // Professionnels populaires (optionnel: limit, défaut 10, max 50)
+  async getPopular(limit: number = 10): Promise<Professional[]> {
+    return api.get<Professional[]>('/professionals/popular', {
+      params: limit > 10 ? { limit } : undefined,
+    });
   }
 
   // Obtenir un professionnel par ID
@@ -60,9 +64,9 @@ class ProfessionalsService {
     return api.get<Professional>(API_ENDPOINTS.PROFESSIONALS.GET_BY_ID(id));
   }
 
-  // Obtenir mon profil professionnel
-  async getMyProfile(): Promise<Professional> {
-    return api.get<Professional>(API_ENDPOINTS.PROFESSIONALS.MY_PROFILE);
+  // Obtenir mon profil professionnel (null si pas encore de fiche)
+  async getMyProfile(): Promise<Professional | null> {
+    return api.get<Professional | null>(API_ENDPOINTS.PROFESSIONALS.MY_PROFILE);
   }
 
   // Créer un profil professionnel

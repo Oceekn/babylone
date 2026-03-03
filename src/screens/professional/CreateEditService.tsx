@@ -5,6 +5,7 @@ import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { Camera, Loader } from 'lucide-react'
 import { servicesService, Service } from '../../services/services.service'
+import { DEFAULT_SERVICE_CATEGORIES } from '../../constants/categories'
 import './CreateEditService.css'
 
 const CreateEditService = () => {
@@ -14,6 +15,8 @@ const CreateEditService = () => {
   const isEdit = !!editId
 
   const [title, setTitle] = useState('')
+  const [category, setCategory] = useState('')
+  const [categoryIsOther, setCategoryIsOther] = useState(false)
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
   const [duration, setDuration] = useState('')
@@ -33,6 +36,9 @@ const CreateEditService = () => {
       setLoading(true)
       const service = await servicesService.getById(editId)
       setTitle(service.title)
+      const cat = (service as Service & { category?: string }).category || ''
+      setCategory(cat)
+      setCategoryIsOther(!!cat && !DEFAULT_SERVICE_CATEGORIES.includes(cat as any))
       setDescription(service.description || '')
       setPrice(String(service.price))
       setDuration(String(service.estimated_duration || ''))
@@ -61,11 +67,14 @@ const CreateEditService = () => {
     try {
       setSaving(true)
       setError(null)
+      const priceNum = parseFloat(price)
+      const durationNum = duration.trim() ? parseInt(duration, 10) : undefined
       const data = {
         title: title.trim(),
+        category: category.trim() || undefined,
         description: description.trim() || undefined,
-        price: parseFloat(price),
-        estimated_duration: duration ? parseInt(duration) : undefined,
+        price: Number.isFinite(priceNum) ? priceNum : 0,
+        estimated_duration: durationNum != null && Number.isFinite(durationNum) ? durationNum : undefined,
         currency: 'XAF',
       }
 
@@ -114,6 +123,37 @@ const CreateEditService = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>Catégorie</label>
+            <select
+              value={categoryIsOther ? 'autre' : (DEFAULT_SERVICE_CATEGORIES.includes(category as any) ? category : '')}
+              onChange={(e) => {
+                if (e.target.value === 'autre') {
+                  setCategoryIsOther(true)
+                  setCategory('')
+                } else {
+                  setCategoryIsOther(false)
+                  setCategory(e.target.value)
+                }
+              }}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', fontFamily: 'inherit', boxSizing: 'border-box', background: 'white' }}
+            >
+              <option value="">Choisir une catégorie</option>
+              {DEFAULT_SERVICE_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+              <option value="autre">Autre (saisie libre)</option>
+            </select>
+            {categoryIsOther && (
+              <div style={{ marginTop: '8px' }}>
+                <Input
+                  placeholder="Ex: Coiffure, Dessin..."
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
           <div style={{ marginBottom: '12px' }}>
             <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>Description</label>
             <textarea

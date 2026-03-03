@@ -1,13 +1,14 @@
 import './BabyloneLogo.css'
 
+type Vertex = { x: number; y: number }
+
 const BabyloneLogo = () => {
   const size = 200
   const center = size / 2
   const radius = 75
   const nodeRadius = 5
   
-  // Calculate octagon vertices (8 points)
-  const vertices = []
+  const vertices: Vertex[] = []
   for (let i = 0; i < 8; i++) {
     const angle = (i * Math.PI) / 4 - Math.PI / 2
     const x = center + radius * Math.cos(angle)

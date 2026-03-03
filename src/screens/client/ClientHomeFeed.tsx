@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import { Menu, Search, Heart, MessageCircle, Send, Star, Loader, Plus } from 'lucide-react'
+import { Menu, Search, Heart, MessageCircle, Send, Loader, Plus } from 'lucide-react'
 import { professionalsService, Professional } from '../../services/professionals.service'
 import { api } from '../../services/api'
+import { socialService } from '../../services/social.service'
+import { parseUtc } from '../../utils/date'
 import './ClientHomeFeed.css'
 
 interface Post {
   id: string
   content: string
   image_url?: string
+  video_url?: string
   likes_count: number
   comments_count: number
   shares_count?: number
@@ -38,11 +41,19 @@ interface Promotion {
   image?: string
 }
 
+type UserWithAvatar = { id?: string; first_name?: string; last_name?: string; avatar_url?: string }
+
 const ClientHomeFeed = () => {
   const navigate = useNavigate()
   const [professionals, setProfessionals] = useState<Professional[]>([])
   const [posts, setPosts] = useState<Post[]>([])
   const [stories, setStories] = useState<Story[]>([])
+  const [viewedStoryIds, setViewedStoryIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem('story_viewed_ids')
+      return raw ? new Set(JSON.parse(raw)) : new Set()
+    } catch { return new Set() }
+  })
   const [promotions] = useState<Promotion[]>([
     { id: 'p1', title: 'Salon Amina', discount: '20% off', image: '🎁' },
     { id: 'p2', title: 'Fitness with Jean', discount: '15% off', image: '🎉' },
@@ -57,12 +68,19 @@ const ClientHomeFeed = () => {
       setLoading(true)
       const [prosData, postsData, storiesData] = await Promise.allSettled([
         professionalsService.getPopular(),
-        api.get<Post[]>('/social/feed?limit=5'),
+        api.get<{ posts?: Post[] }>('/social/feed?limit=5'),
         api.get<Story[]>('/social/stories'),
       ])
       if (prosData.status === 'fulfilled') setProfessionals(prosData.value)
-      if (postsData.status === 'fulfilled') setPosts(postsData.value as Post[])
+      if (postsData.status === 'fulfilled') {
+        const res = postsData.value as { posts?: Post[] }
+        setPosts(Array.isArray(res?.posts) ? res.posts : [])
+      }
       if (storiesData.status === 'fulfilled') setStories(Array.isArray(storiesData.value) ? storiesData.value : [])
+      try {
+        const raw = localStorage.getItem('story_viewed_ids')
+        if (raw) setViewedStoryIds(new Set(JSON.parse(raw)))
+      } catch {}
     } catch (err) {
       console.error('Erreur feed:', err)
     } finally {
@@ -80,6 +98,16 @@ const ClientHomeFeed = () => {
     return 'Utilisateur'
   }
 
+  const handleLike = async (postId: string) => {
+    try {
+      const response = await socialService.toggleLike(postId) as { liked: boolean; likes_count?: number; likesCount?: number }
+      const count = response.likes_count ?? response.likesCount ?? 0
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes_count: count } : p))
+    } catch (err) {
+      console.error('Erreur like:', err)
+    }
+  }
+
   const getStoryName = (story: Story) => {
     if (story.user) return `${story.user.first_name || ''} ${story.user.last_name || ''}`.trim() || 'Utilisateur'
     return 'Utilisateur'
@@ -87,7 +115,7 @@ const ClientHomeFeed = () => {
 
   const formatPostDate = (dateString?: string) => {
     if (!dateString) return ''
-    const date = new Date(dateString)
+    const date = parseUtc(dateString)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
@@ -127,23 +155,26 @@ const ClientHomeFeed = () => {
                   </div>
                   <span className="story-name">Créer</span>
                 </div>
-                {stories.map((story) => (
-                  <div
-                    key={story.id}
-                    className="story-item"
-                    onClick={() => navigate(`/social/story/${story.id}`)}
-                  >
-                    <div 
-                      className="story-avatar"
-                      style={story.user?.avatar_url ? { backgroundImage: `url(${story.user.avatar_url})` } : {}}
+                {stories.map((story) => {
+                  const seen = viewedStoryIds.has(story.id)
+                  return (
+                    <div
+                      key={story.id}
+                      className="story-item"
+                      onClick={() => navigate(`/social/story/${story.id}`)}
                     >
-                      {!story.user?.avatar_url && (
-                        <span>{getStoryName(story).charAt(0)}</span>
-                      )}
+                      <div 
+                        className={`story-avatar ${seen ? 'story-avatar-seen' : ''}`}
+                        style={(story.user as UserWithAvatar | undefined)?.avatar_url ? { backgroundImage: `url(${(story.user as UserWithAvatar).avatar_url})` } : {}}
+                      >
+                        {!(story.user as UserWithAvatar | undefined)?.avatar_url && (
+                          <span>{getStoryName(story).charAt(0)}</span>
+                        )}
+                      </div>
+                      <span className="story-name">{getStoryName(story)}</span>
                     </div>
-                    <span className="story-name">{getStoryName(story)}</span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
@@ -160,8 +191,8 @@ const ClientHomeFeed = () => {
                         onClick={() => navigate(`/services/professional/${prof.id}`)}
                       >
                         <div className="prof-image">
-                          {prof.user?.avatar_url ? (
-                            <img src={prof.user.avatar_url} alt="" />
+                          {(prof.user as UserWithAvatar | undefined)?.avatar_url ? (
+                            <img src={(prof.user as UserWithAvatar).avatar_url} alt="" />
                           ) : (
                             <div className="prof-placeholder">{getProfName(prof).charAt(0)}</div>
                           )}
@@ -198,10 +229,17 @@ const ClientHomeFeed = () => {
             {/* Feed Posts */}
             <div className="feed-posts">
               {posts.length > 0 ? (
-                posts.map((post) => (
+                posts.map((post) => {
+                  const videoUrl = post.video_url ?? (post as { videoUrl?: string }).videoUrl
+                  return (
                   <div key={post.id} className="post-card">
                     <div className="post-container">
-                      {post.image_url && (
+                      {videoUrl && (
+                        <div className="post-media post-video">
+                          <video src={videoUrl} controls playsInline />
+                        </div>
+                      )}
+                      {post.image_url && !videoUrl && (
                         <div className="post-image">
                           <img src={post.image_url} alt="" />
                         </div>
@@ -215,21 +253,22 @@ const ClientHomeFeed = () => {
                       </div>
                     </div>
                     <div className="post-engagement">
-                      <button className="engagement-btn">
+                      <button type="button" className="engagement-btn" onClick={() => handleLike(post.id)}>
                         <Heart size={24} />
                         <span>{post.likes_count || 0}</span>
                       </button>
-                      <button className="engagement-btn">
+                      <button type="button" className="engagement-btn" onClick={() => navigate(`/social/post/${post.id}`)}>
                         <MessageCircle size={24} />
                         <span>{post.comments_count || 0}</span>
                       </button>
-                      <button className="engagement-btn">
+                      <button type="button" className="engagement-btn">
                         <Send size={24} />
                         <span>{post.shares_count || 0}</span>
                       </button>
                     </div>
                   </div>
-                ))
+                  )
+                })
               ) : (
                 <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
                   <p>Pas de publications pour le moment</p>

@@ -63,16 +63,24 @@ export class UsersService {
 
   // Rechercher des utilisateurs par nom, prenom, telephone ou email
   async searchUsers(query: string, excludeUserId: string): Promise<Partial<User>[]> {
-    const results = await this.usersRepository
+    const searchPattern = `%${query}%`;
+    const qb = this.usersRepository
       .createQueryBuilder('user')
-      .select(['user.id', 'user.first_name', 'user.last_name', 'user.telephone', 'user.avatar_url'])
-      .where('user.id != :excludeUserId', { excludeUserId })
-      .andWhere(
-        '(LOWER(user.first_name) LIKE LOWER(:q) OR LOWER(user.last_name) LIKE LOWER(:q) OR user.telephone LIKE :q OR LOWER(user.email) LIKE LOWER(:q))',
-        { q: `%${query}%` },
-      )
-      .limit(20)
-      .getMany();
+      .select(['user.id', 'user.first_name', 'user.last_name', 'user.telephone', 'user.email', 'user.avatar_url'])
+      .where('user.id != :excludeUserId', { excludeUserId });
+    
+    // Construire la condition de recherche avec gestion des NULL
+    qb.andWhere(
+      `(
+        (user.first_name IS NOT NULL AND LOWER(user.first_name) LIKE LOWER(:q)) OR
+        (user.last_name IS NOT NULL AND LOWER(user.last_name) LIKE LOWER(:q)) OR
+        (user.telephone IS NOT NULL AND user.telephone LIKE :q) OR
+        (user.email IS NOT NULL AND LOWER(user.email) LIKE LOWER(:q))
+      )`,
+      { q: searchPattern }
+    );
+    
+    const results = await qb.limit(20).getMany();
     return results;
   }
 }

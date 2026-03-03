@@ -43,6 +43,20 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  @Post('send-signup-code')
+  @HttpCode(HttpStatus.OK)
+  async sendSignupCode(
+    @Body() body: { method: 'SMS' | 'Email'; telephone: string; email?: string },
+  ) {
+    if (!body.method || !body.telephone) {
+      throw new BadRequestException('La methode et le numero de telephone sont requis');
+    }
+    if (body.method === 'Email' && !body.email) {
+      throw new BadRequestException('L\'email est requis pour l\'envoi par email');
+    }
+    return this.authService.sendSignupCode(body.method, body.telephone, body.email);
+  }
+
   @Post('request-reset')
   @HttpCode(HttpStatus.OK)
   async requestPasswordReset(@Body() body: { identifier: string }) {

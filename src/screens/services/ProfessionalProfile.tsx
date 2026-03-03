@@ -13,16 +13,19 @@ import './ProfessionalProfile.css'
 const ProfessionalProfile = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'portfolio' | 'reviews'>('about')
+  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'portfolio' | 'reviews'>('services')
   const [professional, setProfessional] = useState<Professional | null>(null)
   const [services, setServices] = useState<Service[]>([])
   const [reviews, setReviews] = useState<Booking[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (id) {
       loadProfessionalData()
+    } else {
+      setLoading(false)
+      setError('Profil introuvable')
     }
   }, [id])
 
@@ -37,9 +40,9 @@ const ProfessionalProfile = () => {
       const profData = await professionalsService.getById(id)
       setProfessional(profData)
 
-      // Charger les services
+      // Charger les services (affichés au client pour réservation)
       const servicesData = await servicesService.getByProfessional(id)
-      setServices(servicesData)
+      setServices(Array.isArray(servicesData) ? servicesData : [])
 
       // Charger les avis reels
       try {
@@ -119,17 +122,17 @@ const ProfessionalProfile = () => {
               </p>
               <div className="rating-section">
                 <div className="rating-main">
-                  <span className="rating-number">{professional.rating?.toFixed(1) || '0.0'}</span>
+                  <span className="rating-number">{(Number(professional.rating) || 0).toFixed(1)}</span>
                   <div className="stars">
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
                         size={20} 
-                        fill={i < Math.floor(professional.rating || 0) ? 'currentColor' : 'none'} 
+                        fill={i < Math.floor(Number(professional.rating) || 0) ? 'currentColor' : 'none'} 
                       />
                     ))}
                   </div>
-                  <span>({professional.total_reviews || 0} avis)</span>
+                  <span>({Number(professional.total_reviews) || 0} avis)</span>
                 </div>
               </div>
             </div>
@@ -190,7 +193,7 @@ const ProfessionalProfile = () => {
                   </div>
                   <Button variant="outline" onClick={() => {
                     localStorage.setItem('bookingFlow_professionalId', id || '')
-                    localStorage.setItem('bookingFlow_professionalName', getUserName(professional!))
+                    localStorage.setItem('bookingFlow_professionalName', professional ? getUserName(professional) : 'Professionnel')
                     navigate(`/services/select?professionalId=${id}&serviceId=${service.id}`)
                   }}>
                     Voir
@@ -241,7 +244,7 @@ const ProfessionalProfile = () => {
                         <span className="review-author">{authorName}</span>
                         <div className="review-rating">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} size={14} fill={i < (review.rating || 0) ? 'currentColor' : 'none'} />
+                            <Star key={i} size={14} fill={i < (Number(review.rating) || 0) ? 'currentColor' : 'none'} />
                           ))}
                         </div>
                       </div>

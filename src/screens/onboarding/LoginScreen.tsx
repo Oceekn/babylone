@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
-import { Eye, EyeOff, HelpCircle } from 'lucide-react'
+import { Eye, EyeOff, HelpCircle, AlertCircle } from 'lucide-react'
 import { authService } from '../../services/auth.service'
+import { API_CONFIG } from '../../config/api'
 import './LoginScreen.css'
 
 const LoginScreen = () => {
@@ -16,6 +17,11 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showServerConfig, setShowServerConfig] = useState(false)
+  const [serverUrl, setServerUrl] = useState(() => {
+    const base = API_CONFIG.getApiBaseUrl()
+    return base.replace(/\/api\/v1\/?$/, '') || 'http://localhost:3000'
+  })
 
   // Nettoyer un éventuel vieux token invalide quand on arrive sur login
   useEffect(() => {
@@ -30,7 +36,13 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (!formData.emailOrPhone || !formData.password) {
-      setError('Veuillez remplir tous les champs')
+      if (!formData.emailOrPhone && !formData.password) {
+        setError('Veuillez remplir votre email/téléphone et votre mot de passe')
+      } else if (!formData.emailOrPhone) {
+        setError('Veuillez entrer votre email ou numéro de téléphone')
+      } else {
+        setError('Veuillez entrer votre mot de passe')
+      }
       return
     }
 
@@ -47,19 +59,19 @@ const LoginScreen = () => {
         }
       }
 
-      const response = await authService.login({
+      const loginResponse = await authService.login({
         telephone: identifier, // Le backend accepte email ou telephone dans ce champ
         password: formData.password
       })
 
-      // Stocker les infos utilisateur
-      const user = authService.getUserFromToken()
+      const user = loginResponse?.user ?? authService.getUserFromToken()
       if (user) {
         localStorage.setItem('user', JSON.stringify(user))
       }
 
-      // Rediriger selon le rôle
-      if (user?.role === 'professional') {
+      // Rediriger selon le rôle (comparaison insensible à la casse)
+      const role = (user?.role ?? '').toString().toLowerCase()
+      if (role === 'professional') {
         navigate('/professional/dashboard')
       } else {
         navigate('/client/home')
@@ -68,7 +80,7 @@ const LoginScreen = () => {
       console.error('Erreur de connexion:', err)
       const status = err.response?.status
       if (status === 401) {
-        setError('Identifiants incorrects. Vérifiez votre numéro et mot de passe.')
+        setError('Identifiants incorrects. Pas encore de compte ? Inscrivez-vous d\'abord.')
       } else if (!err.response) {
         setError('Impossible de joindre le serveur. Vérifiez que le backend est démarré (port 3000).')
       } else {
@@ -81,7 +93,7 @@ const LoginScreen = () => {
 
   return (
     <ScreenLayout 
-      title="Babylone" 
+      title="Connexion" 
       showBack 
       rightAction={<HelpCircle size={24} />}
     >
@@ -118,13 +130,48 @@ const LoginScreen = () => {
         </button>
 
         {error && (
-          <div style={{ 
-            color: '#FF3131', 
-            fontSize: '14px', 
-            marginBottom: '12px',
-            textAlign: 'center'
-          }}>
-            {error}
+          <div className="login-error">
+            <div className="login-error-text">
+              <AlertCircle size={18} />
+              <span>{error}</span>
+            </div>
+            {error.includes('joindre le serveur') && (
+              <button
+                type="button"
+                className="server-config-toggle"
+                onClick={() => setShowServerConfig((v) => !v)}
+              >
+                {showServerConfig ? 'Masquer' : "Configurer l'adresse du serveur"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {showServerConfig && (
+          <div className="server-config-box">
+            <Input
+              label="Adresse du backend"
+              placeholder="http://192.168.1.10:3000"
+              value={serverUrl}
+              onChange={(e) => setServerUrl(e.target.value)}
+            />
+            <p className="server-config-hint">Indiquez l&apos;IP de votre PC (ipconfig) et le port 3000. Téléphone et PC sur le même Wi‑Fi.</p>
+            <Button
+              variant="outline"
+              fullWidth
+              onClick={() => {
+                const url = serverUrl.trim() || 'http://localhost:3000'
+                if (!url.startsWith('http')) {
+                  setError('URL doit commencer par http:// ou https://')
+                  return
+                }
+                API_CONFIG.setBackendUrl(url)
+                setError(null)
+                setShowServerConfig(false)
+              }}
+            >
+              Enregistrer et réessayer
+            </Button>
           </div>
         )}
 
@@ -137,10 +184,12 @@ const LoginScreen = () => {
           {loading ? 'Connexion...' : 'Se connecter'}
         </Button>
 
-        <div className="social-login-section">
-          <p className="social-separator">Ou connectez-vous avec</p>
-          <p className="social-note">Disponible après première connexion</p>
-        </div>
+        <p className="signup-prompt">
+          Pas encore de compte ?{' '}
+          <button type="button" className="signup-link" onClick={() => navigate('/signup/personal')}>
+            S'inscrire
+          </button>
+        </p>
       </div>
     </ScreenLayout>
   )

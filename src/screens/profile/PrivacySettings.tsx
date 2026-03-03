@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import Button from '../../components/common/Button'
 import './PrivacySettings.css'
 
 interface PrivacyState {

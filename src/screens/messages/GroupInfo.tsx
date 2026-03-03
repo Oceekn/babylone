@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import Button from '../../components/common/Button'
 import { Bell, Users, Loader } from 'lucide-react'
 import { chatService, Conversation, ConversationParticipant } from '../../services/chat.service'
 import './GroupInfo.css'

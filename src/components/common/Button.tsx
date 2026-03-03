@@ -3,11 +3,12 @@ import './Button.css'
 interface ButtonProps {
   children: React.ReactNode
   variant?: 'primary' | 'secondary' | 'outline'
-  onClick?: () => void
+  onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void
   type?: 'button' | 'submit' | 'reset'
   fullWidth?: boolean
   disabled?: boolean
   className?: string
+  style?: React.CSSProperties
 }
 
 const Button = ({ 
@@ -17,11 +18,13 @@ const Button = ({
   type = 'button',
   fullWidth = false,
   disabled = false,
-  className = ''
+  className = '',
+  style
 }: ButtonProps) => {
   return (
     <button
       className={`btn btn-${variant} ${fullWidth ? 'full-width' : ''} ${className}`}
+      style={style}
       onClick={onClick}
       type={type}
       disabled={disabled}

@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
 import { API_CONFIG } from '../config/api';
 
-// Créer une instance axios avec la configuration de base
+// Créer une instance axios (baseURL peut être overridée par l'intercepteur)
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
@@ -10,9 +10,10 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Intercepteur pour ajouter le token JWT à chaque requête
+// Intercepteur : utiliser l'URL du serveur configurée (app mobile sans rebuild)
 apiClient.interceptors.request.use(
   (config) => {
+    config.baseURL = API_CONFIG.getApiBaseUrl();
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

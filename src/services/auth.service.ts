@@ -14,6 +14,7 @@ export interface RegisterData {
   last_name?: string;
   pays_code?: string;
   role?: 'client' | 'professional';
+  verification_code?: string;
 }
 
 export interface AuthResponse {
@@ -79,6 +80,19 @@ class AuthService {
   // Obtenir le token
   getToken(): string | null {
     return localStorage.getItem('auth_token');
+  }
+
+  // Envoyer le code de vérification (inscription) par SMS ou email
+  async sendSignupCode(
+    method: 'SMS' | 'Email',
+    telephone: string,
+    email?: string,
+  ): Promise<{ message: string }> {
+    return api.post<{ message: string }>(API_ENDPOINTS.AUTH.SEND_SIGNUP_CODE, {
+      method,
+      telephone,
+      email,
+    });
   }
 
   // Demander la reinitialisation du mot de passe

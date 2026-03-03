@@ -3,8 +3,9 @@
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  padding: 24px 0;
+  padding: 40px 0 48px;
   background-color: #F7FAFC;
+  min-height: 0;
 }
 
 .profile-chart {
@@ -46,10 +47,12 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  margin-top: 8px;
 }
 
 .profile-avatar-wrapper {
   position: relative;
+  display: inline-block;
 }
 
 .profile-avatar-btn {
@@ -59,6 +62,8 @@
   cursor: pointer;
   position: relative;
   border-radius: 50%;
+  overflow: hidden;
+  display: block;
 }
 
 .profile-avatar,
@@ -78,18 +83,51 @@
   font-size: 50px;
 }
 
-.profile-avatar-camera {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 32px;
-  height: 32px;
+/* Placeholder: octogone + b (comme EditPersonalInfo) */
+.profile-avatar-placeholder {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #fff;
+  border: 1px solid #d1d5db;
+}
+
+.profile-avatar-octagon {
+  width: 78%;
+  height: 78%;
+  display: block;
+}
+
+/* Badge caméra en dehors du cercle, bien visible (pas incrusté) */
+.profile-avatar-camera {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fff;
+  color: #1d0c0c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
+}
+
+.profile-avatar-camera:hover {
+  background: #f9fafb;
+}
+
+.profile-avatar-camera:disabled {
+  opacity: 0.8;
+  cursor: wait;
 }
 
 .profile-avatar-loading {
@@ -112,6 +150,70 @@
   font-weight: 600;
   color: var(--text-dark);
   margin: 0;
+}
+
+.profile-email {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 4px 0 0 0;
+}
+
+.profile-social-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.profile-social-follow {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--dark-grey);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.profile-stat-clickable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.profile-stat-clickable:hover {
+  background-color: rgba(18, 92, 237, 0.05);
+}
+
+.profile-stat-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.profile-stat-label {
+  font-size: 13px;
+  color: var(--dark-grey);
+}
+
+.profile-stat:hover {
+  color: var(--primary-blue);
 }
 
 .profile-title {

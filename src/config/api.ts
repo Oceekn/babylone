@@ -1,12 +1,31 @@
+/// <reference types="vite/client" />
 // Configuration de l'API Backend
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
-const API_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '') || 'http://localhost:3000';
+const DEFAULT_BASE = import.meta.env?.VITE_API_URL || 'http://localhost:3000/api/v1';
+const DEFAULT_ORIGIN = import.meta.env?.VITE_SOCKET_URL || DEFAULT_BASE.replace(/\/api\/v1\/?$/, '') || 'http://localhost:3000';
+const STORAGE_API_BASE = 'api_base_url';
+const STORAGE_SOCKET_URL = 'socket_url';
+
+export function getApiBaseUrl(): string {
+  return localStorage.getItem(STORAGE_API_BASE) || DEFAULT_BASE;
+}
+export function getSocketUrl(): string {
+  return localStorage.getItem(STORAGE_SOCKET_URL) || DEFAULT_ORIGIN;
+}
+export function setBackendUrl(serverUrl: string): void {
+  const base = serverUrl.replace(/\/+$/, '') + '/api/v1';
+  const origin = serverUrl.replace(/\/+$/, '');
+  localStorage.setItem(STORAGE_API_BASE, base);
+  localStorage.setItem(STORAGE_SOCKET_URL, origin);
+}
 
 export const API_CONFIG = {
-  BASE_URL: API_BASE,
+  BASE_URL: DEFAULT_BASE,
   TIMEOUT: 30000, // 30 secondes
   /** URL du serveur pour WebSocket (même origine que l’API, sans /api/v1) */
-  SOCKET_URL: import.meta.env.VITE_SOCKET_URL || API_ORIGIN,
+  SOCKET_URL: DEFAULT_ORIGIN,
+  getApiBaseUrl,
+  getSocketUrl,
+  setBackendUrl,
 };
 
 // Endpoints de l'API
@@ -16,6 +35,7 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     VERIFY_TOKEN: '/auth/verify',
+    SEND_SIGNUP_CODE: '/auth/send-signup-code',
     REQUEST_RESET: '/auth/request-reset',
     RESET_PASSWORD: '/auth/reset-password',
   },
@@ -42,6 +62,9 @@ export const API_ENDPOINTS = {
   
   // Services
   SERVICES: {
+    LIST_AVAILABLE: '/services/list',
+    CATEGORIES: '/services/categories',
+    CATEGORIES_USE: '/services/categories/use',
     GET_BY_ID: (id: string) => `/services/${id}`,
     GET_BY_PROFESSIONAL: (professionalId: string) => `/services/professional/${professionalId}`,
     MY_SERVICES: '/services/my-services',
@@ -91,10 +114,17 @@ export const API_ENDPOINTS = {
   SOCIAL: {
     FEED: '/social/feed',
     CREATE_POST: '/social/posts',
+    GET_POST: (postId: string) => `/social/posts/${postId}`,
     ADD_COMMENT: (postId: string) => `/social/posts/${postId}/comments`,
     GET_COMMENTS: (postId: string) => `/social/posts/${postId}/comments`,
     TOGGLE_LIKE: (postId: string) => `/social/posts/${postId}/like`,
     USER_POSTS: (userId: string) => `/social/users/${userId}/posts`,
+    FOLLOW_USER: (userId: string) => `/social/follow/${userId}`,
+    UNFOLLOW_USER: (userId: string) => `/social/follow/${userId}`,
+    USER_FOLLOW_STATUS: (userId: string) => `/social/users/${userId}/follow-status`,
+    USER_FOLLOW_COUNTS: (userId: string) => `/social/users/${userId}/follow-counts`,
+    USER_FOLLOWERS: (userId: string) => `/social/users/${userId}/followers`,
+    USER_FOLLOWING: (userId: string) => `/social/users/${userId}/following`,
     STORIES: '/social/stories',
     STORIES_UPLOAD: '/social/stories/upload',
     STORY_BY_ID: (id: string) => `/social/stories/${id}`,
@@ -115,8 +145,10 @@ export const API_ENDPOINTS = {
     STATS: '/bookings/stats',
     REVIEWS_RECEIVED: '/bookings/reviews-received',
     PROFESSIONAL_REVIEWS: (professionalId: string) => `/bookings/professional/${professionalId}/reviews`,
+    AVAILABILITY: '/bookings/availability',
     GET_BY_ID: (id: string) => `/bookings/${id}`,
     UPDATE_STATUS: (id: string) => `/bookings/${id}/status`,
+    RESCHEDULE: (id: string) => `/bookings/${id}/reschedule`,
     REVIEW: (id: string) => `/bookings/${id}/review`,
   },
 

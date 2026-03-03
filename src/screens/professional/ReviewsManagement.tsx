@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import { Star, Loader } from 'lucide-react'
+import { Star, Loader, MessageCircle } from 'lucide-react'
 import { bookingsService, Booking } from '../../services/bookings.service'
 import './ReviewsManagement.css'
 
@@ -42,72 +42,105 @@ const ReviewsManagement = () => {
     return 'Client'
   }
 
+  const hasRating = avgRating > 0
+
   return (
     <ScreenLayout title="Avis" showBack showBottomNav>
       <div className="reviews-management">
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <div className="reviews-loading">
             <Loader size={32} className="spin" />
           </div>
         ) : (
           <>
-            <div className="overall-rating">
+            <section className="reviews-summary-card">
               <div className="rating-display">
                 <span className="rating-number">{avgRating.toFixed(1)}</span>
-                <div className="stars-large">
+                <div className="stars-large" aria-hidden>
                   {[1, 2, 3, 4, 5].map(i => (
-                    <Star key={i} size={24} fill={i <= Math.round(avgRating) ? '#FFB800' : 'none'} color="#FFB800" />
+                    <Star
+                      key={i}
+                      size={26}
+                      fill={hasRating && i <= Math.round(avgRating) ? '#FFB800' : 'none'}
+                      color={hasRating ? '#FFB800' : '#cbd5e1'}
+                      strokeWidth={1.5}
+                    />
                   ))}
                 </div>
-                <p>{reviews.length} avis</p>
+                <p className="rating-count">{reviews.length} avis</p>
               </div>
               <div className="rating-breakdown">
-                {ratingDistribution.map(({ star, percent }) => (
-                  <div key={star} className="breakdown-bar">
-                    <span>{star}</span>
+                {ratingDistribution.map(({ star, count, percent }) => (
+                  <div key={star} className="breakdown-row">
+                    <span className="breakdown-star">{star}</span>
                     <div className="bar-container">
                       <div className="bar-fill" style={{ width: `${percent}%` }} />
                     </div>
-                    <span>{percent}%</span>
+                    <span className="breakdown-value">{reviews.length > 0 ? `${count} (${percent}%)` : '0%'}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
             <div className="filter-buttons">
-              <button className={`filter-btn ${filter === null ? 'active' : ''}`} onClick={() => setFilter(null)}>Tout</button>
+              <button type="button" className={`filter-btn ${filter === null ? 'active' : ''}`} onClick={() => setFilter(null)}>
+                Tout
+              </button>
               {[5, 4, 3, 2, 1].map(s => (
-                <button key={s} className={`filter-btn ${filter === s ? 'active' : ''}`} onClick={() => setFilter(s)}>{s} <Star size={12} fill="currentColor" /></button>
+                <button key={s} type="button" className={`filter-btn ${filter === s ? 'active' : ''}`} onClick={() => setFilter(s)}>
+                  {s} <Star size={12} fill="currentColor" />
+                </button>
               ))}
             </div>
 
             <div className="reviews-list">
               {filteredReviews.length === 0 ? (
-                <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>Aucun avis</p>
+                <div className="reviews-empty">
+                  <div className="reviews-empty-icon">
+                    <MessageCircle size={40} strokeWidth={1.5} />
+                  </div>
+                  <p className="reviews-empty-title">Aucun avis</p>
+                  <p className="reviews-empty-text">
+                    {reviews.length === 0
+                      ? 'Les avis apparaîtront ici une fois que vos clients auront noté leurs réservations.'
+                      : `Aucun avis à ${filter} étoile${filter === 1 ? '' : 's'} pour le moment.`}
+                  </p>
+                </div>
               ) : (
                 filteredReviews.map((r) => (
-                  <div key={r.id} className="review-item">
-                    <div className="review-avatar">
+                  <article key={r.id} className="review-item">
+                    <div className="review-avatar" aria-hidden>
                       {r.client?.avatar_url ? (
-                        <img src={r.client.avatar_url} alt="" />
-                      ) : (
-                        getClientName(r).charAt(0)
-                      )}
+                        <img
+                          src={r.client.avatar_url}
+                          alt=""
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                            const fallback = e.currentTarget.nextElementSibling
+                            if (fallback) (fallback as HTMLElement).style.display = 'flex'
+                          }}
+                        />
+                      ) : null}
+                      <span className="review-initial" style={r.client?.avatar_url ? { display: 'none' } : undefined}>
+                        {getClientName(r).charAt(0).toUpperCase()}
+                      </span>
                     </div>
                     <div className="review-content">
                       <div className="review-header">
                         <span className="review-author">{getClientName(r)}</span>
-                        <div className="review-stars">
+                        <div className="review-stars" aria-label={`${r.rating || 0} sur 5`}>
                           {[1, 2, 3, 4, 5].map(i => (
-                            <Star key={i} size={14} fill={i <= (r.rating || 0) ? '#FFB800' : 'none'} color="#FFB800" />
+                            <Star key={i} size={14} fill={i <= (r.rating || 0) ? '#FFB800' : 'none'} color="#FFB800" strokeWidth={1.5} />
                           ))}
                         </div>
                       </div>
-                      <p className="review-service">{r.service?.title || ''}</p>
+                      {r.service?.title && <p className="review-service">{r.service.title}</p>}
                       {r.review && <p className="review-text">{r.review}</p>}
-                      <p className="review-date">{new Date(r.updated_at).toLocaleDateString('fr-FR')}</p>
+                      <time className="review-date" dateTime={r.updated_at}>
+                        {new Date(r.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </time>
                     </div>
-                  </div>
+                  </article>
                 ))
               )}
             </div>

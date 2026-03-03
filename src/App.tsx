@@ -16,11 +16,14 @@ import GroupChat from './screens/messages/GroupChat'
 import GroupInfo from './screens/messages/GroupInfo'
 import CallScreen from './screens/messages/CallScreen'
 import SocialFeed from './screens/social/SocialFeed'
+import PostDetail from './screens/social/PostDetail'
 import CreatePost from './screens/social/CreatePost'
 import CreateStory from './screens/social/CreateStory'
 import StoryViewer from './screens/social/StoryViewer'
 import UserProfile from './screens/social/UserProfile'
 import SearchUsers from './screens/social/SearchUsers'
+import FollowersList from './screens/social/FollowersList'
+import FollowingList from './screens/social/FollowingList'
 import GroupsDiscovery from './screens/social/GroupsDiscovery'
 import GroupPage from './screens/social/GroupPage'
 import ServicesSearch from './screens/services/ServicesSearch'
@@ -29,12 +32,14 @@ import SearchResults from './screens/services/SearchResults'
 import MapView from './screens/services/MapView'
 import ProfessionalProfile from './screens/services/ProfessionalProfile'
 import ServiceSelection from './screens/services/ServiceSelection'
+import ServiceDetail from './screens/services/ServiceDetail'
 import BookingCalendar from './screens/services/BookingCalendar'
 import PaymentMethod from './screens/services/PaymentMethod'
 import PaymentConfirmation from './screens/services/PaymentConfirmation'
 import MyBookingsList from './screens/bookings/MyBookingsList'
 import BookingDetail from './screens/bookings/BookingDetail'
 import ActiveBookingTracking from './screens/bookings/ActiveBookingTracking'
+import RescheduleBooking from './screens/bookings/RescheduleBooking'
 import RateReview from './screens/bookings/RateReview'
 import WalletHome from './screens/wallet/WalletHome'
 import TopUpWallet from './screens/wallet/TopUpWallet'
@@ -44,6 +49,7 @@ import EditPersonalInfo from './screens/profile/EditPersonalInfo'
 import PrivacySettings from './screens/profile/PrivacySettings'
 import NotificationsSettings from './screens/profile/NotificationsSettings'
 import Favorites from './screens/profile/Favorites'
+import StoriesArchive from './screens/profile/StoriesArchive'
 import ProfessionalDashboard from './screens/professional/ProfessionalDashboard'
 import ProfessionalProfileScreen from './screens/professional/ProfessionalProfileScreen'
 import ManageServices from './screens/professional/ManageServices'
@@ -87,10 +93,13 @@ function App() {
         
         {/* Social (protégé, publications réelles) */}
         <Route path="/social" element={<ProtectedRoute><SocialFeed /></ProtectedRoute>} />
+        <Route path="/social/post/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
         <Route path="/social/create-post" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
         <Route path="/social/create-story" element={<ProtectedRoute><CreateStory /></ProtectedRoute>} />
         <Route path="/social/story/:id" element={<ProtectedRoute><StoryViewer /></ProtectedRoute>} />
         <Route path="/social/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+        <Route path="/social/profile/:id/followers" element={<ProtectedRoute><FollowersList /></ProtectedRoute>} />
+        <Route path="/social/profile/:id/following" element={<ProtectedRoute><FollowingList /></ProtectedRoute>} />
         <Route path="/social/search-users" element={<ProtectedRoute><SearchUsers /></ProtectedRoute>} />
         <Route path="/social/groups" element={<ProtectedRoute><GroupsDiscovery /></ProtectedRoute>} />
         <Route path="/social/group/:id" element={<ProtectedRoute><GroupPage /></ProtectedRoute>} />
@@ -101,6 +110,7 @@ function App() {
         <Route path="/services/results" element={<SearchResults />} />
         <Route path="/services/map" element={<MapView />} />
         <Route path="/services/professional/:id" element={<ProfessionalProfile />} />
+        <Route path="/services/detail/:id" element={<ServiceDetail />} />
         <Route path="/services/select" element={<ServiceSelection />} />
         <Route path="/services/booking" element={<BookingCalendar />} />
         <Route path="/services/payment" element={<PaymentMethod />} />
@@ -110,6 +120,7 @@ function App() {
         <Route path="/bookings" element={<ProtectedRoute><MyBookingsList /></ProtectedRoute>} />
         <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
         <Route path="/bookings/:id/tracking" element={<ProtectedRoute><ActiveBookingTracking /></ProtectedRoute>} />
+        <Route path="/bookings/:id/reschedule" element={<ProtectedRoute><RescheduleBooking /></ProtectedRoute>} />
         <Route path="/bookings/:id/review" element={<ProtectedRoute><RateReview /></ProtectedRoute>} />
         
         {/* Wallet (protégé) */}
@@ -119,6 +130,7 @@ function App() {
         
         {/* Profile (protégé) */}
         <Route path="/profile" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
+        <Route path="/profile/stories-archive" element={<ProtectedRoute><StoriesArchive /></ProtectedRoute>} />
         <Route path="/profile/edit" element={<ProtectedRoute><EditPersonalInfo /></ProtectedRoute>} />
         <Route path="/profile/privacy" element={<ProtectedRoute><PrivacySettings /></ProtectedRoute>} />
         <Route path="/profile/notifications" element={<ProtectedRoute><NotificationsSettings /></ProtectedRoute>} />

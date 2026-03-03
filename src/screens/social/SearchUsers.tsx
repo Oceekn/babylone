@@ -13,9 +13,11 @@ const SearchUsers = () => {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
+    setError(null)
     if (query.trim().length < 2) {
       setUsers([])
       setSearched(false)
@@ -24,10 +26,20 @@ const SearchUsers = () => {
     try {
       setLoading(true)
       setSearched(true)
+      console.log('Recherche utilisateurs avec query:', query.trim())
       const results = await usersService.searchUsers(query.trim())
-      setUsers(results)
-    } catch (err) {
+      console.log('Résultats recherche:', results)
+      setUsers(Array.isArray(results) ? results : [])
+      if (!Array.isArray(results) || results.length === 0) {
+        setError(null) // Pas d'erreur, juste aucun résultat
+      }
+    } catch (err: any) {
       console.error('Erreur recherche:', err)
+      console.error('Détails erreur:', err?.response?.data || err?.message)
+      const errorMsg = err?.response?.data?.message || err?.message || 'Erreur lors de la recherche'
+      setError(errorMsg)
+      setUsers([])
+      setSearched(true)
     } finally {
       setLoading(false)
     }
@@ -62,17 +74,24 @@ const SearchUsers = () => {
                   {user.avatar_url ? (
                     <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                   ) : (
-                    `${user.first_name?.charAt(0) || ''}${user.last_name?.charAt(0) || ''}`
+                    <span>
+                      {user.first_name?.charAt(0) || ''}{user.last_name?.charAt(0) || ''}
+                      {!user.first_name && !user.last_name && (user.telephone?.charAt(0) || user.email?.charAt(0) || 'U')}
+                    </span>
                   )}
                 </div>
                 <div className="user-info">
-                  <span className="user-name">{user.first_name} {user.last_name}</span>
-                  <span className="user-title">{user.telephone || user.email || ''}</span>
+                  <span className="user-name">
+                    {[user.first_name, user.last_name].filter(Boolean).join(' ') || user.telephone || user.email || 'Utilisateur'}
+                  </span>
+                  <span className="user-title">
+                    {user.telephone || user.email || ''}
+                  </span>
                 </div>
                 <Button
                   variant="outline"
                   onClick={(e) => {
-                    e.stopPropagation()
+                    e?.stopPropagation()
                     navigate(`/social/profile/${user.id}`)
                   }}
                 >
@@ -80,13 +99,17 @@ const SearchUsers = () => {
                 </Button>
               </div>
             ))
+          ) : error ? (
+            <div className="no-results">
+              <p style={{ color: '#FF3131' }}>Erreur: {error}</p>
+            </div>
           ) : searched ? (
             <div className="no-results">
-              <p>Aucun utilisateur trouve</p>
+              <p>Aucun utilisateur trouvé</p>
             </div>
           ) : (
             <div className="no-results">
-              <p style={{ color: '#888' }}>Tapez au moins 2 caracteres pour rechercher</p>
+              <p style={{ color: '#888' }}>Tapez au moins 2 caractères pour rechercher</p>
             </div>
           )}
         </div>

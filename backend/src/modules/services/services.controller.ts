@@ -6,6 +6,7 @@ import {
   Param,
   Put,
   Delete,
+  Query,
   UseGuards,
   Request,
   UseInterceptors,
@@ -38,12 +39,34 @@ export class ServicesController {
     if (!professional) {
       return [];
     }
-    return this.servicesService.findByProfessionalId(professional.id);
+    // Retourner tous les services (actifs et inactifs) pour la gestion
+    return this.servicesService.findByProfessionalId(professional.id, false);
+  }
+
+  /** Liste des services disponibles (public, pour l’écran Services client). */
+  @Get('list')
+  async listAvailable(@Query('q') q?: string) {
+    return this.servicesService.findAllActive(50, q);
+  }
+
+  /** Top 7 catégories les plus utilisées (pour l’écran Services client). */
+  @Get('categories')
+  async getTopCategories() {
+    return this.servicesService.getTopCategories(7);
+  }
+
+  /** Enregistrer l’usage d’une catégorie (ex. recherche par l’utilisateur) pour faire évoluer le top 7. */
+  @Post('categories/use')
+  async useCategory(@Body() body: { name: string }) {
+    if (body?.name?.trim()) {
+      await this.servicesService.recordCategoryUsage(body.name.trim());
+    }
+    return { ok: true };
   }
 
   @Get('professional/:professionalId')
   async findByProfessional(@Param('professionalId') professionalId: string) {
-    return this.servicesService.findByProfessionalId(professionalId);
+    return this.servicesService.findByProfessionalId(professionalId, true);
   }
 
   @Get(':id')

@@ -1,6 +1,7 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { MailService } from './mail.service';
 import { User, UserRole, AccountStatus } from '../users/entities/user.entity';
 
 export interface JwtPayload {
@@ -10,13 +11,17 @@ export interface JwtPayload {
   pays_code: string;
 }
 
+const CODE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly signupCodes = new Map<string, { code: string; expiresAt: number }>();
 
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private mailService: MailService,
   ) {}
 
   async validateUser(identifier: string, password: string): Promise<User | null> {
@@ -70,10 +75,31 @@ export class AuthService {
     email?: string;
     pays_code?: string;
     role?: string;
+    verification_code?: string;
   }) {
     try {
       this.logger.log(`Tentative d'inscription pour: ${userData.telephone}`);
-      
+
+      // Si l'utilisateur a renseigné un email, le code de vérification est obligatoire
+      if (userData.email && userData.email.trim()) {
+        if (!userData.verification_code || !userData.verification_code.trim()) {
+          throw new UnauthorizedException('Veuillez entrer le code de vérification envoyé à votre email.');
+        }
+        const key = userData.email.trim().toLowerCase();
+        const stored = this.signupCodes.get(key);
+        if (!stored) {
+          throw new UnauthorizedException('Code de vérification expiré ou non demandé. Cliquez sur "Envoyer le code" puis saisissez le code reçu par email.');
+        }
+        if (Date.now() > stored.expiresAt) {
+          this.signupCodes.delete(key);
+          throw new UnauthorizedException('Code de vérification expiré. Demandez un nouveau code.');
+        }
+        if (stored.code !== userData.verification_code.trim()) {
+          throw new UnauthorizedException('Code de vérification incorrect.');
+        }
+        this.signupCodes.delete(key);
+      }
+
       // Vérifier si l'utilisateur existe déjà
       const existingUser = await this.usersService.findByTelephone(userData.telephone);
       if (existingUser) {
@@ -115,6 +141,45 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }
+  }
+
+  /**
+   * Envoyer un code de vérification pour l'inscription.
+   * Email : envoi réel par SMTP. SMS : non implémenté pour l'instant.
+   */
+  async sendSignupCode(
+    method: 'SMS' | 'Email',
+    telephone: string,
+    email?: string,
+  ): Promise<{ message: string }> {
+    if (method === 'SMS') {
+      throw new BadRequestException(
+        'La vérification par SMS n\'est pas encore disponible. Choisissez "Par email".',
+      );
+    }
+
+    if (!email || !email.includes('@')) {
+      throw new BadRequestException('Une adresse email valide est requise pour recevoir le code.');
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const key = email.trim().toLowerCase();
+    this.signupCodes.set(key, {
+      code,
+      expiresAt: Date.now() + CODE_EXPIRY_MS,
+    });
+
+    if (this.mailService.isConfigured()) {
+      await this.mailService.sendVerificationCode(email.trim(), code);
+    } else {
+      this.logger.warn(
+        `SMTP non configuré — code de vérification pour ${email} (à utiliser dans l'app) : ${code}`,
+      );
+    }
+
+    return {
+      message: 'Un code de vérification a été envoyé à votre adresse email.',
+    };
   }
 
   /**

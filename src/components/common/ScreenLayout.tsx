@@ -8,12 +8,14 @@ import '../../screens/professional/ProfessionalStyles.css'
 
 interface ScreenLayoutProps {
   children: ReactNode
-  title?: string
+  title?: string | ReactNode
   showBack?: boolean
   showSettings?: boolean
   showSearch?: boolean
   showClose?: boolean
   showBottomNav?: boolean
+  contentClassName?: string
+  titleClassName?: string
   onBack?: () => void
   onSettings?: () => void
   onSearch?: () => void
@@ -29,6 +31,8 @@ const ScreenLayout = ({
   showSearch = false,
   showClose = false,
   showBottomNav = false,
+  contentClassName,
+  titleClassName,
   onBack,
   onSearch,
   onSettings,
@@ -38,8 +42,8 @@ const ScreenLayout = ({
   const navigate = useNavigate()
   const location = useLocation()
   
-  // Détecter si on est dans une route professionnelle
-  const isProfessionalRoute = location.pathname.includes('/professional')
+  // Détecter si on est dans l'espace pro (dashboard, réservations, etc.), pas quand le client consulte /services/professional/:id
+  const isProfessionalRoute = location.pathname.startsWith('/professional/')
 
   const handleBack = () => {
     if (onBack) {
@@ -64,7 +68,13 @@ const ScreenLayout = ({
                 <X size={24} />
               </button>
             )}
-            {title && <h1 className="header-title">{title}</h1>}
+            {title && (
+              typeof title === 'string' ? (
+                <h1 className={`header-title ${titleClassName || ''}`}>{title}</h1>
+              ) : (
+                <div className={`header-title-custom ${titleClassName || ''}`}>{title}</div>
+              )
+            )}
           </div>
           <div className="header-right">
             {rightAction}
@@ -81,7 +91,7 @@ const ScreenLayout = ({
           </div>
         </header>
       )}
-      <main className="screen-content" style={{ paddingBottom: showBottomNav ? '80px' : '0' }}>
+      <main className={`screen-content ${contentClassName || ''}`.trim()} style={{ paddingBottom: showBottomNav ? '100px' : undefined }}>
         {children}
       </main>
       {showBottomNav && (isProfessionalRoute ? <ProfessionalBottomNavigation /> : <BottomNavigation />)}

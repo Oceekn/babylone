@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
-import { Search, Plus, Users } from 'lucide-react'
+import { Search, Users } from 'lucide-react'
 import './GroupsDiscovery.css'
 
 interface Group {
@@ -78,7 +78,7 @@ const GroupsDiscovery = () => {
                 <Button
                   variant={group.joined ? 'outline' : 'secondary'}
                   className="join-btn"
-                  onClick={(e) => { e.stopPropagation(); handleJoin(group.id) }}
+                  onClick={() => handleJoin(group.id)}
                 >
                   {group.joined ? 'Membre' : 'Rejoindre'}
                 </Button>

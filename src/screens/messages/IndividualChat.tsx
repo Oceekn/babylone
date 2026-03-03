@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import { Phone, Video, Paperclip, Camera, Mic, Send } from 'lucide-react'
 import { chatService, Message } from '../../services/chat.service'
@@ -8,8 +8,7 @@ import { authService } from '../../services/auth.service'
 import './IndividualChat.css'
 
 const IndividualChat = () => {
-  const navigate = useNavigate()
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)

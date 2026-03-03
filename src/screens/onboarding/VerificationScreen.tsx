@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Button from '../../components/common/Button'
@@ -7,13 +7,24 @@ import { usersService } from '../../services/users.service'
 import { storageService } from '../../services/storage.service'
 import './VerificationScreen.css'
 
+type VerificationMethod = 'SMS' | 'Email'
+
 const VerificationScreen = () => {
   const navigate = useNavigate()
+  const [method, setMethod] = useState<VerificationMethod>('Email')
+  const [codeSent, setCodeSent] = useState(false)
+  const [sendingCode, setSendingCode] = useState(false)
   const [smsCode, setSmsCode] = useState(['', '', '', '', '', ''])
   const [emailCode, setEmailCode] = useState(['', '', '', '', '', ''])
   const [countdown, setCountdown] = useState(59)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!codeSent || countdown <= 0) return
+    const t = setInterval(() => setCountdown((c) => c - 1), 1000)
+    return () => clearInterval(t)
+  }, [codeSent, countdown])
 
   const handleCodeChange = (index: number, value: string, type: 'sms' | 'email') => {
     if (value.length > 1) return
@@ -27,12 +38,54 @@ const VerificationScreen = () => {
     setError(null)
   }
 
-  const handleVerify = async () => {
-    const smsCodeStr = smsCode.join('')
-    const emailCodeStr = emailCode.join('')
+  const handleSendCode = async () => {
+    const signupData = localStorage.getItem('signupData')
+    if (!signupData) {
+      setError('Données d\'inscription non trouvées. Retournez à l\'étape précédente.')
+      return
+    }
+    const data = JSON.parse(signupData)
+    const telephone = data.telephone || ''
+    const email = data.email || ''
 
-    if (smsCodeStr.length !== 6 || emailCodeStr.length !== 6) {
-      setError('Veuillez entrer les codes complets')
+    if (method === 'SMS' && !telephone) {
+      setError('Numéro de téléphone manquant.')
+      return
+    }
+    if (method === 'Email' && !email) {
+      setError('Adresse email manquante.')
+      return
+    }
+
+    setSendingCode(true)
+    setError(null)
+    try {
+      await authService.sendSignupCode(method, telephone, method === 'Email' ? email : undefined)
+      setCodeSent(true)
+      setCountdown(59)
+    } catch (err: any) {
+      const msg = err.response?.data?.message
+      const noResponse = !err.response
+      setError(
+        msg ||
+        (noResponse
+          ? 'Impossible de joindre le serveur. Vérifiez votre connexion et que le backend est démarré (port 3000).'
+          : 'Impossible d\'envoyer le code. Réessayez.')
+      )
+    } finally {
+      setSendingCode(false)
+    }
+  }
+
+  const handleResendCode = () => {
+    if (countdown > 0) return
+    handleSendCode()
+  }
+
+  const handleVerify = async () => {
+    const code = method === 'SMS' ? smsCode.join('') : emailCode.join('')
+    if (code.length !== 6) {
+      setError(`Veuillez entrer le code ${method === 'SMS' ? 'SMS' : 'email'} complet (6 chiffres)`)
       return
     }
 
@@ -47,9 +100,10 @@ const VerificationScreen = () => {
       }
 
       const data = JSON.parse(signupData)
-      
-      // Inscription réelle auprès du backend
-      const response = await authService.register({
+      const code = method === 'SMS' ? smsCode.join('') : emailCode.join('')
+
+      // Inscription réelle auprès du backend (avec code de vérification si email)
+      await authService.register({
         telephone: data.telephone,
         password: data.password,
         email: data.email,
@@ -57,6 +111,7 @@ const VerificationScreen = () => {
         last_name: data.last_name,
         pays_code: data.pays_code || 'CM',
         role: data.accountType === 'Professionnel' ? 'professional' : 'client',
+        ...(method === 'Email' && code ? { verification_code: code } : {}),
       })
 
       // Stocker les infos utilisateur
@@ -128,59 +183,106 @@ const VerificationScreen = () => {
 
         <p className="verification-instruction">Entrez le code de vérification</p>
 
-        <div className="code-section">
-          <label className="code-label">Code SMS</label>
-          <div className="code-inputs">
-            {smsCode.map((digit, index) => (
-              <input
-                key={index}
-                type="text"
-                maxLength={1}
-                className="code-input"
-                value={digit}
-                onChange={(e) => handleCodeChange(index, e.target.value, 'sms')}
-              />
-            ))}
-          </div>
+        <div className="method-selector">
+          <label className={`method-option ${method === 'SMS' ? 'active' : ''}`}>
+            <input
+              type="radio"
+              name="verif-method"
+              value="SMS"
+              checked={method === 'SMS'}
+              onChange={() => { setMethod('SMS'); setCodeSent(false); setError(null) }}
+            />
+            <span>Par SMS</span>
+          </label>
+          <label className={`method-option ${method === 'Email' ? 'active' : ''}`}>
+            <input
+              type="radio"
+              name="verif-method"
+              value="Email"
+              checked={method === 'Email'}
+              onChange={() => { setMethod('Email'); setCodeSent(false); setError(null) }}
+            />
+            <span>Par email</span>
+          </label>
         </div>
 
-        <div className="code-section">
-          <label className="code-label">Code Email</label>
-          <div className="code-inputs">
-            {emailCode.map((digit, index) => (
-              <input
-                key={index}
-                type="text"
-                maxLength={1}
-                className="code-input"
-                value={digit}
-                onChange={(e) => handleCodeChange(index, e.target.value, 'email')}
-              />
-            ))}
-          </div>
-        </div>
+        {!codeSent ? (
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={handleSendCode}
+            disabled={sendingCode}
+          >
+            {sendingCode ? 'Envoi en cours...' : 'Envoyer le code'}
+          </Button>
+        ) : (
+          <>
+            {method === 'SMS' && (
+              <div className="code-section">
+                <label className="code-label">Code SMS</label>
+                <div className="code-inputs">
+                  {smsCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      className="code-input"
+                      value={digit}
+                      onChange={(e) => handleCodeChange(index, e.target.value.replace(/\D/g, ''), 'sms')}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <p className="resend-text">Renvoyer dans 0:{countdown.toString().padStart(2, '0')}</p>
+            {method === 'Email' && (
+              <div className="code-section">
+                <label className="code-label">Code email</label>
+                <div className="code-inputs">
+                  {emailCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      className="code-input"
+                      value={digit}
+                      onChange={(e) => handleCodeChange(index, e.target.value.replace(/\D/g, ''), 'email')}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <p className="resend-text">
+              {countdown > 0 ? (
+                <>Renvoyer dans 0:{countdown.toString().padStart(2, '0')}</>
+              ) : (
+                <button type="button" className="resend-link" onClick={handleResendCode}>
+                  Renvoyer le code
+                </button>
+              )}
+            </p>
+          </>
+        )}
 
         {error && (
-          <div style={{ 
-            color: '#FF3131', 
-            fontSize: '14px', 
-            marginBottom: '12px',
-            textAlign: 'center'
-          }}>
+          <div className="verification-error">
             {error}
           </div>
         )}
 
-        <Button 
-          variant="primary" 
-          fullWidth 
-          onClick={handleVerify}
-          disabled={loading}
-        >
-          {loading ? 'Vérification...' : 'Vérifier'}
-        </Button>
+        {codeSent && (
+          <Button 
+            variant="primary" 
+            fullWidth 
+            onClick={handleVerify}
+            disabled={loading}
+          >
+            {loading ? 'Vérification...' : 'Vérifier'}
+          </Button>
+        )}
       </div>
     </ScreenLayout>
   )

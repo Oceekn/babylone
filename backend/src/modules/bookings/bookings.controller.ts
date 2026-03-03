@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingStatusDto, ReviewBookingDto } from './dto/update-booking.dto';
+import { UpdateBookingStatusDto, ReviewBookingDto, RescheduleBookingDto } from './dto/update-booking.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('bookings')
@@ -61,10 +61,29 @@ export class BookingsController {
     return this.bookingsService.getReviewsByProfessionalId(professionalId);
   }
 
+  // Creneaux disponibles pour un professionnel a une date donnee
+  @Get('availability')
+  async getAvailability(
+    @Query('professional_id') professionalId: string,
+    @Query('date') date: string,
+  ) {
+    return this.bookingsService.getAvailability(professionalId, date);
+  }
+
   // Detail d'une reservation
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.bookingsService.findById(id);
+  }
+
+  // Reporter une reservation (date/heure)
+  @Patch(':id/reschedule')
+  async reschedule(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() dto: RescheduleBookingDto,
+  ) {
+    return this.bookingsService.reschedule(id, req.user.id, dto);
   }
 
   // Mettre a jour le statut (confirmer, annuler, etc.)

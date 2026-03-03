@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import Button from '../../components/common/Button'
-import { Loader, Edit, Trash2 } from 'lucide-react'
+import { Edit, Trash2, Plus, Briefcase, Clock, ImageIcon } from 'lucide-react'
 import { servicesService, Service } from '../../services/services.service'
 import './ManageServices.css'
 
@@ -51,48 +50,78 @@ const ManageServices = () => {
 
   return (
     <ScreenLayout
-      title="Services"
-      rightAction={<Button variant="primary" onClick={() => navigate('/professional/services/create')}>Ajouter</Button>}
+      title="Mes services"
+      rightAction={
+        <button type="button" className="manage-services-header-btn" onClick={() => navigate('/professional/services/create')}>
+          <Plus size={20} strokeWidth={2.5} /> Nouveau
+        </button>
+      }
       showBottomNav
     >
       <div className="manage-services">
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-            <Loader size={32} className="spin" />
+          <div className="manage-services-loading">
+            <div className="loading-dots"><span /><span /><span /></div>
+            <p>Chargement...</p>
           </div>
         ) : services.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <p style={{ color: '#888', marginBottom: '16px' }}>Aucun service. Ajoutez votre premier service.</p>
-            <Button variant="primary" onClick={() => navigate('/professional/services/create')}>Ajouter un service</Button>
+          <div className="manage-services-empty">
+            <div className="empty-illus"><Briefcase size={56} strokeWidth={1.2} /></div>
+            <h2>Pas encore de service</h2>
+            <p>Créez votre premier service pour apparaître dans les recherches et recevoir des réservations.</p>
+            <button type="button" className="empty-cta" onClick={() => navigate('/professional/services/create')}>
+              <Plus size={20} /> Créer un service
+            </button>
           </div>
         ) : (
           <div className="services-list">
             {services.map((service) => (
               <div key={service.id} className={`service-item ${!service.is_active ? 'inactive' : ''}`}>
+                {service.image_url ? (
+                  <div className="service-thumb">
+                    <img src={service.image_url} alt="" />
+                  </div>
+                ) : (
+                  <div className="service-thumb service-thumb-placeholder">
+                    <ImageIcon size={24} />
+                  </div>
+                )}
                 <div className="service-info">
                   <h3>{service.title}</h3>
-                  <p>{Number(service.price).toLocaleString('fr-FR')} {service.currency || 'XAF'}</p>
-                  {service.estimated_duration && <span className="duration">{service.estimated_duration} min</span>}
+                  {service.description && <p className="service-desc">{service.description}</p>}
+                  <div className="service-meta">
+                    <span className="service-price">{Number(service.price).toLocaleString('fr-FR')} {service.currency || 'XAF'}</span>
+                    {service.estimated_duration != null && service.estimated_duration > 0 && (
+                      <span className="service-duration"><Clock size={12} /> {service.estimated_duration} min</span>
+                    )}
+                  </div>
                 </div>
                 <div className="service-actions">
-                  <button className="icon-btn" onClick={() => navigate(`/professional/services/create?edit=${service.id}`)}>
+                  <button
+                    type="button"
+                    className="action-btn action-btn-edit"
+                    onClick={() => navigate(`/professional/services/create?edit=${service.id}`)}
+                    title="Modifier"
+                  >
                     <Edit size={16} />
                   </button>
                   <button
-                    className={`icon-btn danger ${confirmDeleteId === service.id ? 'confirming' : ''}`}
+                    type="button"
+                    className={`action-btn action-btn-delete ${confirmDeleteId === service.id ? 'confirming' : ''}`}
                     onClick={() => handleDelete(service.id)}
-                    onBlur={() => setConfirmDeleteId(null)}
-                    title={confirmDeleteId === service.id ? 'Cliquer pour confirmer' : 'Supprimer'}
+                    onBlur={() => setTimeout(() => setConfirmDeleteId(null), 200)}
+                    title={confirmDeleteId === service.id ? 'Confirmer' : 'Supprimer'}
                   >
-                    {confirmDeleteId === service.id ? <span style={{ fontSize: '11px' }}>OK?</span> : <Trash2 size={16} />}
+                    {confirmDeleteId === service.id ? 'OK?' : <Trash2 size={16} />}
                   </button>
-                  <label className="toggle-label">
+                  <label className="toggle-wrapper">
                     <input
                       type="checkbox"
-                      className="toggle-switch"
+                      className="toggle-input"
                       checked={service.is_active}
                       onChange={() => toggleActive(service)}
                     />
+                    <span className="toggle-slider" />
                   </label>
                 </div>
               </div>

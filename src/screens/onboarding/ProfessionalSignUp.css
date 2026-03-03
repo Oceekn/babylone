@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding-bottom: 24px;
   background-color: #EFF6FF;
+  margin: -16px;
+  padding: 24px 16px;
   min-height: 100vh;
-  padding-top: 16px;
 }
 
 .professional-signup .btn {

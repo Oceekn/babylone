@@ -67,6 +67,7 @@ const SignUpContact = () => {
     email: '',
     phone: '',
     password: '',
+    confirmPassword: '',
     accountType: 'Client'
   })
   const [error, setError] = useState<string | null>(null)
@@ -84,22 +85,39 @@ const SignUpContact = () => {
       setError('Veuillez remplir tous les champs obligatoires')
       return
     }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Les deux mots de passe ne correspondent pas.')
+      return
+    }
 
     // Stocker les données d'inscription pour l'utiliser après vérification
-    const signupData = {
+    const signupData: {
+      telephone: string
+      password: string
+      email?: string
+      accountType: string
+      pays_code: string
+      first_name?: string
+      last_name?: string
+    } = {
       telephone: `+237${formData.phone}`,
       password: formData.password,
       email: formData.email || undefined,
       accountType: formData.accountType,
-      pays_code: 'CM', // Par défaut Cameroun
+      pays_code: 'CM',
+      first_name: undefined,
+      last_name: undefined,
     }
 
-    // Récupérer les données personnelles si disponibles
     const personalInfo = localStorage.getItem('personalInfo')
     if (personalInfo) {
-      const personal = JSON.parse(personalInfo)
-      signupData.first_name = personal.firstName
-      signupData.last_name = personal.lastName
+      try {
+        const personal = JSON.parse(personalInfo) as { firstName?: string; lastName?: string }
+        signupData.first_name = personal.firstName
+        signupData.last_name = personal.lastName
+      } catch {
+        // ignore invalid JSON
+      }
     }
 
     localStorage.setItem('signupData', JSON.stringify(signupData))
@@ -141,11 +159,18 @@ const SignUpContact = () => {
             </div>
           </div>
           <Input
-            label="Password"
+            label="Mot de passe"
             type="password"
-            placeholder="Enter your password"
+            placeholder="Entrez votre mot de passe"
             value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
+            onChange={(e) => { handleInputChange('password', e.target.value); setError(null) }}
+          />
+          <Input
+            label="Confirmer le mot de passe"
+            type="password"
+            placeholder="Confirmez votre mot de passe"
+            value={formData.confirmPassword}
+            onChange={(e) => { handleInputChange('confirmPassword', e.target.value); setError(null) }}
           />
           {formData.password && (
             <div className="password-strength">

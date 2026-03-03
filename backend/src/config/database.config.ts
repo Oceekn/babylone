@@ -12,7 +12,18 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
   constructor(private configService: ConfigService) {}
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
-    // Trim pour éviter \r ou espaces (fichier .env sous Windows)
+    const databaseUrl = trimEnv(this.configService.get<string>('DATABASE_URL'));
+    const base = {
+      schema: 'babylone',
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+      migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+      synchronize: this.configService.get<boolean>('DB_SYNCHRONIZE', false),
+      logging: this.configService.get<string>('NODE_ENV') === 'development',
+      extra: { max: 20, connectionTimeoutMillis: 2000 },
+    };
+    if (databaseUrl) {
+      return { type: 'postgres', url: databaseUrl, ...base };
+    }
     const password = trimEnv(this.configService.get<string>('DB_PASSWORD')) || 'babylone_secure_pass_2024';
     return {
       type: 'postgres',
@@ -21,16 +32,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       username: trimEnv(this.configService.get<string>('DB_USERNAME')) || 'babylone_user',
       password,
       database: trimEnv(this.configService.get<string>('DB_DATABASE')) || 'babylone_prod',
-      schema: 'babylone',
-      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-      migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-      synchronize: this.configService.get<boolean>('DB_SYNCHRONIZE', false),
-      logging: this.configService.get<string>('NODE_ENV') === 'development',
-      extra: {
-        // Configuration PostGIS
-        max: 20, // Maximum de connexions dans le pool
-        connectionTimeoutMillis: 2000,
-      },
+      ...base,
     };
   }
 }

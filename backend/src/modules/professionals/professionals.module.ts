@@ -5,6 +5,7 @@ import { ProfessionalsController } from './professionals.controller';
 import { Professional } from './entities/professional.entity';
 import { UsersModule } from '../users/users.module';
 import { StorageModule } from '../storage/storage.module';
+import { ProfessionalRoleGuard } from '../auth/guards/professional-role.guard';
 
 @Module({
   imports: [
@@ -13,8 +14,8 @@ import { StorageModule } from '../storage/storage.module';
     StorageModule,
   ],
   controllers: [ProfessionalsController],
-  providers: [ProfessionalsService],
-  exports: [ProfessionalsService],
+  providers: [ProfessionalsService, ProfessionalRoleGuard],
+  exports: [ProfessionalsService, ProfessionalRoleGuard],
 })
 export class ProfessionalsModule {}
 

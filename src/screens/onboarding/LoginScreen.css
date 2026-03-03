@@ -2,8 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 24px 0;
   background-color: #EFF6FF;
+  margin: -16px;
+  padding: 24px 16px;
   min-height: 100vh;
 }
 
@@ -34,7 +35,7 @@
 .forgot-password {
   background: none;
   border: none;
-  color: var(--primary-blue);
+  color: #87CEEB;
   font-size: 14px;
   text-align: right;
   cursor: pointer;
@@ -46,24 +47,75 @@
   text-decoration: underline;
 }
 
-.social-login-section {
+.signup-prompt {
+  text-align: center;
+  color: var(--text-dark);
+  font-size: 14px;
+  margin: 16px 0 0 0;
+}
+
+.signup-link {
+  background: none;
+  border: none;
+  color: #87CEEB;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}
+
+.login-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  background: #FFF3F3;
+  border: 1px solid #FF5252;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #D32F2F;
+  margin-bottom: 8px;
+}
+
+.login-error-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-error svg {
+  flex-shrink: 0;
+  color: #D32F2F;
+}
+
+.server-config-toggle {
+  background: none;
+  border: none;
+  color: #1976d2;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.server-config-box {
+  margin-top: 8px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 16px;
 }
 
-.social-separator {
-  text-align: center;
-  color: var(--dark-grey);
-  font-size: 14px;
-  margin: 0;
-}
-
-.social-note {
-  text-align: center;
-  color: var(--red);
+.server-config-hint {
   font-size: 12px;
+  color: #666;
   margin: 0;
 }
 

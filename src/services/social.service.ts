@@ -55,6 +55,11 @@ class SocialService {
     });
   }
 
+  // Obtenir un post par ID
+  async getPost(postId: string): Promise<Post> {
+    return api.get<Post>(API_ENDPOINTS.SOCIAL.GET_POST(postId));
+  }
+
   // Créer un post
   async createPost(data: { content?: string; image_url?: string; video_url?: string; pays_code?: string }): Promise<Post> {
     return api.post<Post>(API_ENDPOINTS.SOCIAL.CREATE_POST, {
@@ -86,6 +91,37 @@ class SocialService {
   // Toggle like sur un post
   async toggleLike(postId: string): Promise<{ liked: boolean; likes_count: number }> {
     return api.post<{ liked: boolean; likes_count: number }>(API_ENDPOINTS.SOCIAL.TOGGLE_LIKE(postId));
+  }
+
+  // Follow / unfollow
+  async follow(userId: string): Promise<{ following: boolean }> {
+    return api.post<{ following: boolean }>(API_ENDPOINTS.SOCIAL.FOLLOW_USER(userId));
+  }
+
+  async unfollow(userId: string): Promise<{ following: boolean }> {
+    return api.delete<{ following: boolean }>(API_ENDPOINTS.SOCIAL.UNFOLLOW_USER(userId));
+  }
+
+  async getFollowStatus(userId: string): Promise<{ following: boolean }> {
+    return api.get<{ following: boolean }>(API_ENDPOINTS.SOCIAL.USER_FOLLOW_STATUS(userId));
+  }
+
+  async getFollowCounts(userId: string): Promise<{ followers: number; following: number }> {
+    return api.get<{ followers: number; following: number }>(API_ENDPOINTS.SOCIAL.USER_FOLLOW_COUNTS(userId));
+  }
+
+  async getFollowers(userId: string, limit?: number): Promise<{ follower: { id: string; first_name?: string; last_name?: string; avatar_url?: string } }[]> {
+    const params = limit ? { limit } : {};
+    return api.get(API_ENDPOINTS.SOCIAL.USER_FOLLOWERS(userId), { params });
+  }
+
+  async getFollowing(userId: string, limit?: number): Promise<{ following: { id: string; first_name?: string; last_name?: string; avatar_url?: string } }[]> {
+    const params = limit ? { limit } : {};
+    return api.get(API_ENDPOINTS.SOCIAL.USER_FOLLOWING(userId), { params });
+  }
+
+  async getUserPosts(userId: string): Promise<Post[]> {
+    return api.get<Post[]>(API_ENDPOINTS.SOCIAL.USER_POSTS(userId));
   }
 }
 

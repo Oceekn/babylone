@@ -102,6 +102,20 @@
   margin: 0 0 12px;
 }
 
+.time-slots-loading,
+.time-slots-empty {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.time-slots-loading .spin {
+  color: #FFB800;
+  display: block;
+  margin: 0 auto 8px;
+}
+
 .time-slots {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

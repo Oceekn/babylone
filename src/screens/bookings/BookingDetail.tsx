@@ -225,10 +225,20 @@ const BookingDetail = () => {
         )}
 
         <div className="booking-actions">
-          {canCancel && (
-            <Button variant="secondary" fullWidth onClick={handleCancel} disabled={actionLoading}>
-              {actionLoading ? 'Annulation...' : 'Annuler la reservation'}
+          {['confirmed', 'in_progress'].includes(booking.status) && (
+            <Button variant="primary" fullWidth onClick={() => navigate(`/bookings/${booking.id}/tracking`)}>
+              Suivi en direct
             </Button>
+          )}
+          {canCancel && (
+            <>
+              <Button variant="outline" fullWidth onClick={() => navigate(`/bookings/${booking.id}/reschedule`)}>
+                Reporter la reservation
+              </Button>
+              <Button variant="secondary" fullWidth onClick={handleCancel} disabled={actionLoading}>
+                {actionLoading ? 'Annulation...' : 'Annuler la reservation'}
+              </Button>
+            </>
           )}
           <Button variant="outline" fullWidth onClick={() => navigate('/bookings')}>
             Retour aux reservations

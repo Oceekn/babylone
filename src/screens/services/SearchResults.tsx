@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import Button from '../../components/common/Button'
 import { Star } from 'lucide-react'
 import { professionalsService, Professional } from '../../services/professionals.service'
 import './SearchResults.css'

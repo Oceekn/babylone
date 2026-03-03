@@ -21,7 +21,8 @@ const ProfessionalSettings = () => {
     authService.logout()
   }
 
-  const settings = [
+  type SettingItem = { label: string; description: string; onClick?: () => void; action: React.ReactNode }
+  const settings: { title: string; items: SettingItem[] }[] = [
     {
       title: 'Compte',
       items: [

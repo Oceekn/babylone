@@ -10,6 +10,7 @@ interface InputProps {
   icon?: React.ReactNode
   rightIcon?: React.ReactNode
   error?: string
+  className?: string
 }
 
 const Input = ({ 
@@ -21,10 +22,11 @@ const Input = ({
   label,
   icon,
   rightIcon,
-  error
+  error,
+  className = ''
 }: InputProps) => {
   return (
-    <div className="input-wrapper">
+    <div className={`input-wrapper ${className}`.trim()}>
       {label && <label className="input-label">{label}</label>}
       <div className="input-container">
         {icon && <span className="input-icon-left">{icon}</span>}

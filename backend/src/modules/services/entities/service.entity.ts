@@ -27,6 +27,9 @@ export class Service {
   @Column({ type: 'varchar', length: 200, nullable: false })
   title: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  category: string;
+
   @Column({ type: 'text', nullable: true })
   description: string;
 

@@ -1,52 +1,309 @@
 .create-story {
-  height: 100vh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #000;
+  background: #F7FAFC;
+  padding: 0 0 24px;
 }
 
-.story-header {
+.create-story-hint {
+  margin: 0 20px 16px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Tabs Galerie / Caméra */
+.create-story-tabs {
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 16px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: var(--white);
+  gap: 0;
+  margin: 0 20px 16px;
+  background: #e2e8f0;
+  border-radius: 14px;
+  padding: 4px;
 }
 
-.story-content {
+.create-story-tabs button {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.story-canvas {
-  width: 90%;
-  aspect-ratio: 9/16;
-  background-color: #1a1a1a;
-  border-radius: 16px;
-}
-
-.story-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 16px;
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
-.tool-btn {
-  background: none;
+  gap: 8px;
+  padding: 12px 16px;
   border: none;
-  color: var(--white);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
   cursor: pointer;
-  padding: 8px;
+  transition: color 0.2s, background 0.2s;
 }
 
-.share-btn {
+.create-story-tabs button.active {
+  background: #fff;
+  color: #a14545;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Caméra */
+.story-camera-wrap {
+  margin: 0 20px 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+  aspect-ratio: 9/16;
+  max-height: 420px;
+}
+
+.story-camera-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.story-record-badge {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
 }
 
+.story-record-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: story-record-pulse 1s ease-in-out infinite;
+}
+
+@keyframes story-record-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.story-camera-actions {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.story-cam-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.story-cam-btn:active {
+  transform: scale(0.98);
+}
+
+.story-cam-btn-photo {
+  background: #fff;
+  color: #1e293b;
+}
+
+.story-cam-btn-record {
+  background: #a14545;
+  color: #fff;
+}
+
+.story-cam-btn-stop {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Zone contenu (preview ou upload) */
+.story-content {
+  padding: 0 20px 20px;
+}
+
+/* Zone d’upload (sans média) */
+.story-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 32px 24px;
+  background: #fff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.story-upload-zone:hover {
+  border-color: #a14545;
+  background: #fef2f2;
+}
+
+.story-file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.story-upload-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #a14545;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.story-upload-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.story-upload-sub {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Aperçu média */
+.story-preview-wrap {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.story-preview {
+  aspect-ratio: 9/16;
+  max-height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.story-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-preview-video {
+  width: 100%;
+  height: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  background: #000;
+}
+
+.story-remove-media {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.story-remove-media:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Texte */
+.story-text-section {
+  padding: 0 20px 20px;
+}
+
+.story-text-input {
+  width: 100%;
+  min-height: 88px;
+  padding: 16px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #1e293b;
+  background: #fff;
+  resize: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.story-text-input::placeholder {
+  color: #94a3b8;
+}
+
+.story-text-input:focus {
+  outline: none;
+  border-color: #a14545;
+  box-shadow: 0 0 0 3px rgba(161, 69, 69, 0.12);
+}
+
+/* Erreur */
+.story-error {
+  margin: 0 20px 16px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+/* Actions */
+.story-actions {
+  padding: 0 20px;
+}
+
+.story-publish-btn {
+  border-radius: 14px !important;
+  padding: 16px !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+.story-publish-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.story-publish-label .spin {
+  color: #fff;
+}

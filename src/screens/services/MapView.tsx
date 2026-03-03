@@ -179,7 +179,7 @@ const MapView = () => {
                   {selected.is_verified && <span className="verified-tag">Verifie</span>}
                 </div>
                 <div className="service-actions">
-                  <Button variant="secondary" onClick={(e: React.MouseEvent) => { e.stopPropagation(); navigate(`/services/professional/${selected.id}`) }}>
+                  <Button variant="secondary" onClick={() => navigate(`/services/professional/${selected.id}`)}>
                     Voir le profil
                   </Button>
                 </div>

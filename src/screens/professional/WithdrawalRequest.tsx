@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
-import { Loader } from 'lucide-react'
 import { walletService } from '../../services/wallet.service'
 import './WithdrawalRequest.css'
 

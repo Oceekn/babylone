@@ -9,13 +9,18 @@ import {
 } from 'class-validator';
 
 export class CreateServiceDto {
+  /** Ignoré en création : pris du professionnel connecté. Optionnel pour la validation. */
+  @IsOptional()
   @IsUUID()
-  @IsNotEmpty()
-  professional_id: string;
+  professional_id?: string;
 
   @IsString()
   @IsNotEmpty()
   title: string;
+
+  @IsString()
+  @IsOptional()
+  category?: string;
 
   @IsString()
   @IsOptional()

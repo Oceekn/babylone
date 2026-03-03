@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import { Settings, Heart, MessageCircle, Share2, Camera, Search } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Camera, Search } from 'lucide-react'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { socialService, Post } from '../../services/social.service'
 import { api } from '../../services/api'
+import { formatTimeAgo } from '../../utils/date'
 import './SocialFeed.css'
 
 interface Story {
@@ -24,6 +25,7 @@ interface SocialGroup {
   description: string
   category: string
   joined: boolean
+  cover_url?: string
 }
 
 const defaultGroups: SocialGroup[] = [
@@ -98,36 +100,21 @@ const SocialFeed = () => {
 
   const handleLike = async (postId: string) => {
     try {
-      const response = await socialService.toggleLike(postId)
-      setPosts(posts.map(post => 
-        post.id === postId 
-          ? { ...post, likes_count: response.likes_count }
-          : post
+      const response = await socialService.toggleLike(postId) as { liked: boolean; likes_count?: number; likesCount?: number }
+      const count = response.likes_count ?? response.likesCount ?? 0
+      setPosts(posts.map(post =>
+        post.id === postId ? { ...post, likes_count: count } : post
       ))
-      
-      // Mettre à jour l'état des likes
       const newLikedPosts = new Set(likedPosts)
-      if (response.liked) {
-        newLikedPosts.add(postId)
-      } else {
-        newLikedPosts.delete(postId)
-      }
+      if (response.liked) newLikedPosts.add(postId)
+      else newLikedPosts.delete(postId)
       setLikedPosts(newLikedPosts)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Erreur lors du like:', err)
     }
   }
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    
-    if (diffInSeconds < 60) return `${diffInSeconds}s`
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`
-    return `${Math.floor(diffInSeconds / 86400)}j`
-  }
+  const formatTime = (dateString: string) => formatTimeAgo(dateString)
 
   const getUserName = (post: Post) => {
     if (post.user) {
@@ -150,7 +137,13 @@ const SocialFeed = () => {
   return (
     <ScreenLayout
       title="Babylone"
-      rightAction={<Settings size={24} />}
+      rightAction={
+        <Search 
+          size={24} 
+          onClick={() => navigate('/social/search-users')}
+          style={{ cursor: 'pointer' }}
+        />
+      }
       showBottomNav
     >
       <div className="social-feed">
@@ -217,32 +210,61 @@ const SocialFeed = () => {
             <div className="groups-list">
               {filteredGroups.length > 0 ? (
                 filteredGroups.map((group) => (
-                  <div
+                  <article
                     key={group.id}
                     className="group-card"
                     onClick={() => navigate(`/social/group/${group.id}`)}
                   >
-                    <div className="group-image">{group.name.charAt(0)}</div>
-                    <div className="group-info">
-                      <h3 className="group-name">{group.name}</h3>
-                      <p className="group-members">{group.members} membres</p>
-                      <p className="group-description">{group.description}</p>
-                      <Button
-                        variant={group.joined ? 'outline' : 'secondary'}
-                        className="join-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleJoinGroup(group.id)
-                        }}
-                      >
-                        {group.joined ? 'Membre' : 'Rejoindre'}
-                      </Button>
+                    <div className="group-card-inner">
+                      <div className="group-photo-wrap">
+                        {group.cover_url ? (
+                          <img
+                            src={group.cover_url}
+                            alt=""
+                            className="group-photo-img"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                              const fallback = e.currentTarget.nextElementSibling
+                              if (fallback) (fallback as HTMLElement).style.display = 'flex'
+                            }}
+                          />
+                        ) : null}
+                        <span
+                          className="group-photo-fallback"
+                          style={group.cover_url ? { display: 'none' } : undefined}
+                        >
+                          {group.name.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="group-body">
+                        {group.category ? (
+                          <span className="group-category">{group.category}</span>
+                        ) : null}
+                        <span className="group-members-badge">{group.members} membres</span>
+                        <h3 className="group-name">{group.name}</h3>
+                        <p className="group-description">{group.description}</p>
+                        <Button
+                          variant={group.joined ? 'outline' : 'secondary'}
+                          className="group-join-btn"
+                          onClick={(e) => {
+                            e?.stopPropagation()
+                            handleJoinGroup(group.id)
+                          }}
+                        >
+                          {group.joined ? 'Membre' : 'Rejoindre'}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  </article>
                 ))
               ) : (
                 <div className="no-results">
-                  <p>Aucun groupe trouve</p>
+                  <p>Aucun groupe trouvé</p>
+                  {searchQuery && (
+                    <p style={{ fontSize: '14px', color: '#888', marginTop: '8px' }}>
+                      Essayez avec d'autres mots-clés
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -256,10 +278,7 @@ const SocialFeed = () => {
                 <div className="create-post-icons">
                   <Search 
                     size={20} 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      navigate('/social/search-users')
-                    }}
+                    onClick={() => navigate('/social/search-users')}
                     style={{ cursor: 'pointer' }}
                   />
                   <Camera size={20} />
@@ -280,9 +299,14 @@ const SocialFeed = () => {
                   </Button>
                 </div>
               ) : posts.length > 0 ? (
-                posts.map((post) => (
+                posts.map((post) => {
+                  const videoUrl = post.video_url ?? (post as { videoUrl?: string }).videoUrl
+                  return (
                   <div key={post.id} className="post-card">
-                    {post.image_url && (
+                    {videoUrl && (
+                      <video src={videoUrl} controls playsInline className="post-video" />
+                    )}
+                    {post.image_url && !videoUrl && (
                       <img src={post.image_url} alt="Post" className="post-image" />
                     )}
                     <div className="post-content">
@@ -321,7 +345,8 @@ const SocialFeed = () => {
                       </div>
                     </div>
                   </div>
-                ))
+                  )
+                })
               ) : (
                 <div style={{ padding: '20px', textAlign: 'center' }}>
                   <p>Aucun post à afficher</p>

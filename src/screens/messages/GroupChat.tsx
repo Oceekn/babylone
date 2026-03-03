@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import { Phone, Video, Send, Loader, Info } from 'lucide-react'
+import { Send, Loader, Info } from 'lucide-react'
 import { chatService, Message } from '../../services/chat.service'
 import { chatSocketService } from '../../services/chat-socket.service'
 import { authService } from '../../services/auth.service'

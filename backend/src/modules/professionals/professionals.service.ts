@@ -90,6 +90,31 @@ export class ProfessionalsService {
       .getMany();
   }
 
+  /** Professionnels actifs par pays / métier (sans critère GPS). Utilisé en secours quand la recherche géo ne retourne rien. */
+  async findActiveByPays(
+    limit: number = 50,
+    paysCode?: string,
+    profession?: string,
+  ): Promise<Professional[]> {
+    const query = this.professionalsRepository
+      .createQueryBuilder('professional')
+      .leftJoinAndSelect('professional.user', 'user')
+      .where('professional.is_active = :isActive', { isActive: true })
+      .orderBy('professional.rating', 'DESC')
+      .addOrderBy('professional.created_at', 'DESC')
+      .limit(limit);
+
+    if (paysCode) {
+      query.andWhere('professional.pays_code = :paysCode', { paysCode });
+    }
+    if (profession) {
+      query.andWhere('professional.profession ILIKE :profession', {
+        profession: `%${profession}%`,
+      });
+    }
+    return query.getMany();
+  }
+
   async update(id: string, updateData: Partial<Professional>): Promise<Professional> {
     const professional = await this.findById(id);
     Object.assign(professional, updateData);

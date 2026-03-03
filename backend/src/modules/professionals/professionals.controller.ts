@@ -13,9 +13,11 @@ import {
   UploadedFile,
   HttpCode,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfessionalsService } from './professionals.service';
+import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProfessionalRoleGuard } from '../auth/guards/professional-role.guard';
 import { SearchProfessionalsDto } from './dto/search-professionals.dto';
@@ -33,12 +35,14 @@ interface Point {
 export class ProfessionalsController {
   constructor(
     private readonly professionalsService: ProfessionalsService,
+    private readonly usersService: UsersService,
     private readonly storageService: StorageService,
   ) {}
 
   @Get('popular')
-  async getPopular() {
-    return this.professionalsService.getPopular();
+  async getPopular(@Query('limit') limit?: string) {
+    const n = limit ? Math.min(parseInt(limit, 10) || 10, 50) : 10;
+    return this.professionalsService.getPopular(n);
   }
 
   @Get('search')
@@ -47,18 +51,32 @@ export class ProfessionalsController {
       type: 'Point',
       coordinates: [parseFloat(searchDto.longitude), parseFloat(searchDto.latitude)],
     };
-    return this.professionalsService.searchByRadius(
+    const byRadius = await this.professionalsService.searchByRadius(
       center,
-      searchDto.radius || 10000, // 10km par défaut
+      searchDto.radius || 10000,
       searchDto.pays_code,
       searchDto.profession,
     );
+    // Si aucun résultat (ex. pros sans position GPS), afficher les pros actifs du pays
+    if (byRadius.length === 0) {
+      return this.professionalsService.findActiveByPays(
+        50,
+        searchDto.pays_code,
+        searchDto.profession,
+      );
+    }
+    return byRadius;
   }
 
   @Get('my-profile')
-  @UseGuards(JwtAuthGuard, ProfessionalRoleGuard)
+  @UseGuards(JwtAuthGuard)
   async getMyProfile(@Request() req) {
-    return this.professionalsService.findByUserId(req.user.id);
+    const professional = await this.professionalsService.findByUserId(req.user.id);
+    if (!professional) {
+      return null;
+    }
+    // Ne pas modifier le rôle en base : la redirection après login reste selon l'inscription (client vs pro)
+    return professional;
   }
 
   @Post()
@@ -78,7 +96,9 @@ export class ProfessionalsController {
       };
     }
 
-    return this.professionalsService.create(professionalData);
+    const professional = await this.professionalsService.create(professionalData);
+    // Ne pas forcer le rôle à PROFESSIONAL : l'utilisateur garde son rôle d'inscription pour la redirection login
+    return professional;
   }
 
   @Put(':id')

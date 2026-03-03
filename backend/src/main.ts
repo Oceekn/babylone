@@ -13,9 +13,9 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix(apiPrefix);
 
-  // CORS - À configurer selon les besoins
+  // CORS - Web + app mobile (origin peut être null, file:// ou capacitor://)
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: true, // en dev : accepter toute origine pour que l’app mobile joigne le backend
     credentials: true,
   });
 
@@ -34,8 +34,10 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(port);
-  console.log(`🚀 BABYLONE Backend running on: http://localhost:${port}/${apiPrefix}`);
+  const host = process.env.HOST || '0.0.0.0';
+  await app.listen(port, host);
+  console.log(`🚀 BABYLONE Backend running on: http://${host === '0.0.0.0' ? 'localhost' : host}:${port}/${apiPrefix}`);
+  if (host === '0.0.0.0') console.log(`   (accessible sur le réseau: http://<VOTRE_IP>:${port}/${apiPrefix})`);
   console.log(`📊 Environment: ${configService.get('NODE_ENV', 'development')}`);
 }
 

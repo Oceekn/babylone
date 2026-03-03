@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import Input from '../../components/common/Input'
-import { Camera, Send, Users } from 'lucide-react'
+import { Send, Users } from 'lucide-react'
 import './GroupPage.css'
 
 interface GroupPost {

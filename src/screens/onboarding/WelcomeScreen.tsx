@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import Button from '../../components/common/Button'
 import './WelcomeScreen.css'
 
+const logoImage = new URL('../../../imagebabylon.png', import.meta.url).href
+
 const WelcomeScreen = () => {
   const navigate = useNavigate()
 
@@ -10,7 +12,7 @@ const WelcomeScreen = () => {
       <div className="welcome-content">
         <div className="welcome-logo-container">
           <div className="babylone-logo">
-            <img src="/logo.png" alt="BABYLONE Logo" className="logo-image" />
+            <img src={logoImage} alt="Babylone" className="logo-image" />
           </div>
           <h1 className="app-title">BABYLONE</h1>
           <p className="app-subtitle">Messagerie Social Services</p>

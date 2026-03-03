@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
-import { Calendar, Camera } from 'lucide-react'
+import { Camera } from 'lucide-react'
 import './SignUpPersonalInfo.css'
 
 const SignUpPersonalInfo = () => {
@@ -71,7 +71,6 @@ const SignUpPersonalInfo = () => {
             type="date"
             value={formData.birthDate}
             onChange={(e) => handleInputChange('birthDate', e.target.value)}
-            rightIcon={<Calendar size={20} />}
           />
           <Input
             label="Ville"

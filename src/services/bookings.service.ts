@@ -1,6 +1,10 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '../config/api';
 
+export interface AvailabilitySlot {
+  time: string; // "HH:mm"
+}
+
 export interface Booking {
   id: string;
   client_id: string;
@@ -82,14 +86,24 @@ class BookingsService {
   }
 
   async updateStatus(id: string, status: string, cancellation_reason?: string): Promise<Booking> {
-    return api.patch<Booking>(API_ENDPOINTS.BOOKINGS.UPDATE_STATUS(id), {
-      status,
-      cancellation_reason,
-    });
+    const body: { status: string; cancellation_reason?: string } = { status };
+    if (cancellation_reason != null && cancellation_reason !== '') body.cancellation_reason = cancellation_reason;
+    return api.patch<Booking>(API_ENDPOINTS.BOOKINGS.UPDATE_STATUS(id), body);
+  }
+
+  async reschedule(id: string, scheduled_at: string): Promise<Booking> {
+    return api.patch<Booking>(API_ENDPOINTS.BOOKINGS.RESCHEDULE(id), { scheduled_at });
   }
 
   async addReview(id: string, rating: number, review?: string): Promise<Booking> {
     return api.post<Booking>(API_ENDPOINTS.BOOKINGS.REVIEW(id), { rating, review });
+  }
+
+  async getAvailability(professionalId: string, date: string): Promise<AvailabilitySlot[]> {
+    const res = await api.get<AvailabilitySlot[]>(
+      `${API_ENDPOINTS.BOOKINGS.AVAILABILITY}?professional_id=${encodeURIComponent(professionalId)}&date=${encodeURIComponent(date)}`,
+    );
+    return Array.isArray(res) ? res : [];
   }
 
   async getStats(): Promise<{

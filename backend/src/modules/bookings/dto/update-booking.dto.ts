@@ -1,4 +1,9 @@
-import { IsOptional, IsString, IsNumber, IsIn, MaxLength, Min, Max } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsIn, MaxLength, Min, Max, IsDateString } from 'class-validator';
+
+export class RescheduleBookingDto {
+  @IsDateString()
+  scheduled_at: string;
+}
 
 export class UpdateBookingStatusDto {
   @IsIn(['confirmed', 'in_progress', 'completed', 'cancelled', 'rejected'])
