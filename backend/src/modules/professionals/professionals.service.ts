@@ -39,29 +39,30 @@ export class ProfessionalsService {
     });
   }
 
-  // Recherche par rayon avec PostGIS (en mètres) - OPTIMISÉE avec index
+  // Recherche par rayon (Haversine, en mètres) - compatible sans PostGIS (position_gps en JSONB)
   async searchByRadius(
     center: Point,
     radiusInMeters: number,
     paysCode?: string,
     profession?: string,
   ): Promise<Professional[]> {
+    const lng = center.coordinates[0];
+    const lat = center.coordinates[1];
     const query = this.professionalsRepository
       .createQueryBuilder('professional')
       .leftJoinAndSelect('professional.user', 'user')
       .where('professional.is_active = :isActive', { isActive: true })
       .andWhere('professional.position_gps IS NOT NULL')
       .andWhere(
-        `ST_DWithin(
-          professional.position_gps::geography,
-          ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
-          :radius
-        )`,
-        {
-          lng: center.coordinates[0],
-          lat: center.coordinates[1],
-          radius: radiusInMeters,
-        },
+        `(professional.position_gps->'coordinates'->>0) IS NOT NULL AND (professional.position_gps->'coordinates'->>1) IS NOT NULL`,
+      )
+      .andWhere(
+        `( 6371000 * acos(least(1, greatest(-1,
+          sin(radians(:lat)) * sin(radians((professional.position_gps->'coordinates'->>1)::double precision)) +
+          cos(radians(:lat)) * cos(radians((professional.position_gps->'coordinates'->>1)::double precision)) *
+          cos(radians((professional.position_gps->'coordinates'->>0)::double precision) - radians(:lng))
+        )) ) <= :radius`,
+        { lat, lng, radius: radiusInMeters },
       );
 
     if (paysCode) {

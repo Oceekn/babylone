@@ -42,14 +42,9 @@ export class Professional {
   @Column({ type: 'varchar', length: 2, nullable: false, default: 'CM' })
   pays_code: string;
 
-  // PostGIS Point pour la géolocalisation
-  @Column({
-    type: 'geography',
-    spatialFeatureType: 'Point',
-    srid: 4326,
-    nullable: true,
-  })
-  position_gps: any; // PostGIS Point - TypeORM gère le type automatiquement
+  // Géolocalisation : JSON { type: 'Point', coordinates: [lng, lat] } (compatible sans PostGIS)
+  @Column({ type: 'jsonb', nullable: true })
+  position_gps: { type: 'Point'; coordinates: [number, number] } | null;
 
   @Column({ type: 'text', nullable: true })
   cni_document_url: string; // URL du document CNI sur MinIO
