@@ -58,6 +58,9 @@ coverage
 # Testing
 .nyc_output
 
-
+# Documentation (fichiers .md exclus du dépôt)
+*.md
+# Pour garder le README, décommentez la ligne suivante :
+# !README.md
 
 
