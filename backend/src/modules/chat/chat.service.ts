@@ -50,18 +50,16 @@ export class ChatService {
         type: ConversationType.INDIVIDUAL,
       });
       const savedConversation = await queryRunner.manager.save(Conversation, conversation);
+      const conversationId = savedConversation?.id;
+      if (!conversationId) {
+        throw new Error('Conversation non créée');
+      }
 
-      // Ajouter les participants
-      const participant1 = this.participantsRepository.create({
-        conversation_id: savedConversation.id,
-        user_id: userId1,
-      });
-      const participant2 = this.participantsRepository.create({
-        conversation_id: savedConversation.id,
-        user_id: userId2,
-      });
-
-      await queryRunner.manager.save(ConversationParticipant, [participant1, participant2]);
+      // Ajouter les participants (insert explicite pour éviter null sur user_id)
+      await queryRunner.manager.insert(ConversationParticipant, [
+        { conversation_id: conversationId, user_id: userId1 },
+        { conversation_id: conversationId, user_id: userId2 },
+      ]);
       await queryRunner.commitTransaction();
 
       return savedConversation;

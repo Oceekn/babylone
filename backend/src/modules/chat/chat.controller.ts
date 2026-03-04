@@ -28,9 +28,11 @@ export class ChatController {
     @Body() body: { userId?: string; user_id?: string },
     @Request() req,
   ) {
+    const userId1 = req.user?.id ?? req.user?.sub;
     const userId2 = body.userId ?? body.user_id;
+    if (!userId1) throw new BadRequestException('Utilisateur non identifié');
     if (!userId2) throw new BadRequestException('userId ou user_id requis');
-    return this.chatService.createIndividualConversation(req.user.id, userId2);
+    return this.chatService.createIndividualConversation(userId1, userId2);
   }
 
   @Post('conversations/group')
