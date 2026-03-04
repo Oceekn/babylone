@@ -31,6 +31,7 @@ interface Story {
   text?: string
   media_url?: string
   views_count: number
+  created_at?: string
   user?: { id: string; first_name?: string; last_name?: string; avatar_url?: string }
 }
 
