@@ -135,14 +135,14 @@ const SocialFeed = () => {
     group.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // Un cercle = une personne : grouper les stories par user_id (déduplication stricte)
+  // Un cercle = une personne : grouper par user (user.id en priorité pour éviter doublons)
   const storiesByUser = (() => {
     const map = new Map<string, { user: Story['user']; stories: Story[] }>()
     const sorted = [...stories]
-      .filter((s) => s.user_id != null && String(s.user_id).trim() !== '')
+      .filter((s) => (s.user?.id ?? s.user_id) != null && String(s.user?.id ?? s.user_id).trim() !== '')
       .sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
     for (const s of sorted) {
-      const key = String(s.user_id).trim().toLowerCase()
+      const key = String(s.user?.id ?? s.user_id ?? '').trim().toLowerCase()
       const existing = map.get(key)
       if (existing) {
         existing.stories.push(s)
