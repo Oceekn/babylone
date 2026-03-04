@@ -99,6 +99,35 @@
   white-space: nowrap;
 }
 
+.message-preview.unread {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* Point lumineux pour conversation non lue */
+.unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 2px rgba(161, 69, 69, 0.35);
+  margin-right: 6px;
+  vertical-align: middle;
+  animation: unread-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes unread-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 2px rgba(161, 69, 69, 0.35); }
+  50% { opacity: 0.85; box-shadow: 0 0 0 4px rgba(161, 69, 69, 0.2); }
+}
+
+.message-preview .sender-name {
+  color: var(--red);
+  font-weight: 600;
+}
+
 .fab {
   position: fixed;
   bottom: 100px;

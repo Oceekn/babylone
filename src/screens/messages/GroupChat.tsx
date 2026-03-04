@@ -64,6 +64,7 @@ const GroupChat = () => {
         setGroupName(conv.name || 'Groupe')
         setMemberCount(conv.participants?.length || 0)
       }
+      await chatService.markAsRead(id)
     } catch (err) {
       setError('Erreur chargement du groupe')
     } finally {

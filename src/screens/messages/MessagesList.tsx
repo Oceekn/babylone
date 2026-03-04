@@ -18,6 +18,13 @@ const MessagesList = () => {
     loadConversations()
   }, [])
 
+  // Recharger la liste quand on revient sur l'écran (ex. après avoir ouvert un chat → le point non lu disparaît)
+  useEffect(() => {
+    const onFocus = () => loadConversations()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
   const loadConversations = async () => {
     try {
       setLoading(true)
@@ -136,8 +143,16 @@ const MessagesList = () => {
                       <span className="message-time">{formatTime(conv.last_message_at)}</span>
                     )}
                   </div>
-                  <p className="message-preview">
-                    {conv.last_message || 'Aucun message'}
+                  <p className={`message-preview ${conv.unread_count && conv.unread_count > 0 ? 'unread' : ''}`}>
+                    {conv.unread_count && conv.unread_count > 0 && conv.last_message_sender_name ? (
+                      <>
+                        <span className="unread-dot" aria-hidden />
+                        <span className="sender-name">{conv.last_message_sender_name}: </span>
+                        {conv.last_message || 'Message'}
+                      </>
+                    ) : (
+                      conv.last_message || 'Aucun message'
+                    )}
                   </p>
                   {conv.unread_count && conv.unread_count > 0 && (
                     <span className="unread-badge">{conv.unread_count}</span>

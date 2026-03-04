@@ -19,7 +19,7 @@ export class ChatController {
   @Get('conversations')
   @UseGuards(JwtAuthGuard)
   async getConversations(@Request() req) {
-    return this.chatService.getUserConversations(req.user.id);
+    return this.chatService.getConversationsWithDetails(req.user.id);
   }
 
   @Post('conversations/individual')
@@ -38,10 +38,12 @@ export class ChatController {
   @Post('conversations/group')
   @UseGuards(JwtAuthGuard)
   async createGroupConversation(
-    @Body() body: { name: string; participantIds: string[] },
+    @Body() body: { name: string; participantIds?: string[]; participant_ids?: string[] },
     @Request() req,
   ) {
-    return this.chatService.createGroupConversation(req.user.id, body.name, body.participantIds);
+    const ids = body.participantIds ?? body.participant_ids ?? [];
+    if (!body.name?.trim()) throw new BadRequestException('Nom du groupe requis');
+    return this.chatService.createGroupConversation(req.user.id, body.name.trim(), ids);
   }
 
   @Get('conversations/:conversationId/messages')

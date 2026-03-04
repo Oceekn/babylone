@@ -10,6 +10,8 @@ export interface Conversation {
   created_by?: string;
   last_message?: string;
   last_message_at?: string;
+  /** Nom de l'envoyeur du dernier message (pour affichage non lu) */
+  last_message_sender_name?: string;
   unread_count?: number;
   created_at: string;
   participants?: ConversationParticipant[];

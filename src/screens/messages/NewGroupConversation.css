@@ -1,0 +1,129 @@
+.new-group-conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+.group-name-field {
+  margin-bottom: 4px;
+}
+
+.selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--red);
+  color: var(--white);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: inherit;
+}
+
+.chip-remove:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.new-group-conversation .search-section {
+  padding: 0;
+}
+
+.new-group-conversation .contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  min-height: 120px;
+}
+
+.list-hint {
+  padding: 20px;
+  text-align: center;
+  color: var(--dark-grey);
+  font-size: 14px;
+}
+
+.new-group-conversation .contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--border-grey);
+}
+
+.new-group-conversation .contact-item:hover {
+  background-color: var(--grey);
+}
+
+.new-group-conversation .contact-item.selected {
+  background-color: rgba(161, 69, 69, 0.08);
+}
+
+.new-group-conversation .contact-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white);
+  overflow: hidden;
+}
+
+.new-group-conversation .contact-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.new-group-conversation .contact-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.new-group-conversation .contact-name {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 16px;
+}
+
+.new-group-conversation .contact-status {
+  font-size: 12px;
+  color: var(--dark-grey);
+}
+
+.check-label {
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 500;
+}

@@ -11,6 +11,7 @@ import PasswordRecoveryScreen from './screens/onboarding/PasswordRecoveryScreen'
 import ClientHomeFeed from './screens/client/ClientHomeFeed'
 import MessagesList from './screens/messages/MessagesList'
 import NewConversation from './screens/messages/NewConversation'
+import NewGroupConversation from './screens/messages/NewGroupConversation'
 import IndividualChat from './screens/messages/IndividualChat'
 import GroupChat from './screens/messages/GroupChat'
 import GroupInfo from './screens/messages/GroupInfo'
@@ -86,6 +87,7 @@ function App() {
         {/* Messages (protégé, temps réel) */}
         <Route path="/messages" element={<ProtectedRoute><MessagesList /></ProtectedRoute>} />
         <Route path="/messages/new" element={<ProtectedRoute><NewConversation /></ProtectedRoute>} />
+        <Route path="/messages/group/new" element={<ProtectedRoute><NewGroupConversation /></ProtectedRoute>} />
         <Route path="/messages/chat/:id" element={<ProtectedRoute><IndividualChat /></ProtectedRoute>} />
         <Route path="/messages/group/:id" element={<ProtectedRoute><GroupChat /></ProtectedRoute>} />
         <Route path="/messages/group/:id/info" element={<ProtectedRoute><GroupInfo /></ProtectedRoute>} />

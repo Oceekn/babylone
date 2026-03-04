@@ -1,9 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, Not } from 'typeorm';
 import { Conversation, ConversationType } from './entities/conversation.entity';
 import { ConversationParticipant } from './entities/conversation-participant.entity';
 import { Message, MessageType } from './entities/message.entity';
+
+export interface ConversationWithDetails extends Conversation {
+  last_message?: string | null;
+  last_message_sender_name?: string | null;
+  unread_count: number;
+}
 
 @Injectable()
 export class ChatService {
@@ -71,12 +77,13 @@ export class ChatService {
     }
   }
 
-  // Créer une conversation de groupe
+  // Créer une conversation de groupe (sélection multiple type Telegram)
   async createGroupConversation(
     userId: string,
     name: string,
     participantIds: string[],
   ): Promise<Conversation> {
+    const ids = Array.isArray(participantIds) ? participantIds.filter((id) => id && id !== userId) : [];
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -88,22 +95,15 @@ export class ChatService {
         created_by: userId,
       });
       const savedConversation = await queryRunner.manager.save(Conversation, conversation);
+      const conversationId = savedConversation?.id;
+      if (!conversationId) throw new Error('Conversation non créée');
 
-      // Ajouter le créateur et les participants
-      const participants = [
-        this.participantsRepository.create({
-          conversation_id: savedConversation.id,
-          user_id: userId,
-        }),
-        ...participantIds.map((id) =>
-          this.participantsRepository.create({
-            conversation_id: savedConversation.id,
-            user_id: id,
-          }),
-        ),
+      // Créateur + participants (insert explicite comme pour individuel)
+      const rows: Array<{ conversation_id: string; user_id: string }> = [
+        { conversation_id: conversationId, user_id: userId },
+        ...ids.map((id) => ({ conversation_id: conversationId, user_id: id })),
       ];
-
-      await queryRunner.manager.save(ConversationParticipant, participants);
+      await queryRunner.manager.insert(ConversationParticipant, rows);
       await queryRunner.commitTransaction();
 
       return savedConversation;
@@ -125,6 +125,48 @@ export class ChatService {
       .orderBy('conversation.last_message_at', 'DESC')
       .addOrderBy('conversation.updated_at', 'DESC')
       .getMany();
+  }
+
+  // Conversations avec dernier message, nom de l'envoyeur et unread_count (pour liste + indicateur non lu)
+  async getConversationsWithDetails(userId: string): Promise<ConversationWithDetails[]> {
+    const convs = await this.getUserConversations(userId);
+    const enriched: ConversationWithDetails[] = await Promise.all(
+      convs.map(async (c) => {
+        const [lastMsg, myParticipant] = await Promise.all([
+          this.messagesRepository.findOne({
+            where: { conversation_id: c.id },
+            order: { created_at: 'DESC' },
+            relations: ['user'],
+          }),
+          this.participantsRepository.findOne({
+            where: { conversation_id: c.id, user_id: userId },
+          }),
+        ]);
+        let displayName = c.name ?? null;
+        if (c.type === ConversationType.INDIVIDUAL && !displayName) {
+          const other = await this.participantsRepository.findOne({
+            where: { conversation_id: c.id, user_id: Not(userId) },
+            relations: ['user'],
+          });
+          const u = other?.user;
+          displayName = u
+            ? `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.telephone || 'Inconnu'
+            : 'Inconnu';
+        }
+        const senderName =
+          lastMsg?.user != null
+            ? `${lastMsg.user.first_name || ''} ${lastMsg.user.last_name || ''}`.trim() || lastMsg.user.telephone
+            : null;
+        return {
+          ...c,
+          name: displayName ?? c.name ?? undefined,
+          last_message: lastMsg?.content ?? null,
+          last_message_sender_name: senderName ?? null,
+          unread_count: myParticipant?.unread_count ?? 0,
+        } as ConversationWithDetails;
+      }),
+    );
+    return enriched;
   }
 
   // Créer un message
@@ -253,12 +295,15 @@ export class ChatService {
     await queryRunner.startTransaction();
 
     try {
-      // Marquer les messages comme lus
-      await queryRunner.manager.update(
-        Message,
-        { conversation_id: conversationId, user_id: userId, is_read: false },
-        { is_read: true, read_at: new Date() },
-      );
+      // Marquer comme lus les messages reçus (envoyés par les autres) dans cette conversation
+      await queryRunner.manager
+        .createQueryBuilder()
+        .update(Message)
+        .set({ is_read: true, read_at: new Date() })
+        .where('conversation_id = :conversationId', { conversationId })
+        .andWhere('user_id != :userId', { userId })
+        .andWhere('is_read = :isRead', { isRead: false })
+        .execute();
 
       // Réinitialiser le compteur de non lus
       await queryRunner.manager.update(
