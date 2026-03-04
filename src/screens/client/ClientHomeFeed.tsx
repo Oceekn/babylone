@@ -113,18 +113,24 @@ const ClientHomeFeed = () => {
     return 'Utilisateur'
   }
 
-  // Un cercle = une personne : grouper les stories par user_id (ordre chronologique par utilisateur)
+  // Un cercle = une personne : grouper les stories par user_id (déduplication stricte)
   const storiesByUser = (() => {
-    const map = new Map<string, Story[]>()
-    const sorted = [...stories].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
+    const map = new Map<string, { user: Story['user']; stories: Story[] }>()
+    const sorted = [...stories]
+      .filter((s) => s.user_id != null && String(s.user_id).trim() !== '')
+      .sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
     for (const s of sorted) {
-      const list = map.get(s.user_id) || []
-      list.push(s)
-      map.set(s.user_id, list)
+      const key = String(s.user_id).trim().toLowerCase()
+      const existing = map.get(key)
+      if (existing) {
+        existing.stories.push(s)
+      } else {
+        map.set(key, { user: s.user, stories: [s] })
+      }
     }
-    return Array.from(map.entries()).map(([user_id, userStories]) => ({
+    return Array.from(map.entries()).map(([user_id, { user, stories: userStories }]) => ({
       user_id,
-      user: userStories[0]?.user,
+      user,
       stories: userStories,
     }))
   })()
