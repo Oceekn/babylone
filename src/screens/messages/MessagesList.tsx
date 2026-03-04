@@ -131,11 +131,24 @@ const MessagesList = () => {
                   onClick={() => navigate(chatPath)}
                 >
                   <div className="message-avatar">
-                    {conv.avatar_url ? (
-                      <img src={conv.avatar_url} alt="" />
-                    ) : (
-                      <span className="message-avatar-initial">{(conv.name || '?').charAt(0).toUpperCase()}</span>
+                    {conv.avatar_url && (
+                      <img
+                        src={conv.avatar_url}
+                        alt=""
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                          const fallback = e.currentTarget.nextElementSibling
+                          if (fallback instanceof HTMLElement) fallback.style.display = 'flex'
+                        }}
+                      />
                     )}
+                    <span
+                      className="message-avatar-initial"
+                      style={{ display: conv.avatar_url ? 'none' : 'flex' }}
+                      aria-hidden
+                    >
+                      {(conv.name || '?').charAt(0).toUpperCase()}
+                    </span>
                   </div>
                   <div className="message-body">
                     <div className="message-row message-row-top">

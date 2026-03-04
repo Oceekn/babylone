@@ -66,6 +66,8 @@
 .message-avatar {
   width: 52px;
   height: 52px;
+  min-width: 52px;
+  min-height: 52px;
   border-radius: 50%;
   background-color: #e0e0e0;
   display: flex;
@@ -73,9 +75,12 @@
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .message-avatar img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -87,6 +92,7 @@
   font-weight: 700;
   color: #fff;
   text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  z-index: 1;
 }
 
 .message-body {
