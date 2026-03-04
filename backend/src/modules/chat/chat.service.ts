@@ -143,23 +143,26 @@ export class ChatService {
           }),
         ]);
         let displayName = c.name ?? null;
-        if (c.type === ConversationType.INDIVIDUAL && !displayName) {
+        let otherUser: { first_name?: string; last_name?: string; telephone?: string; avatar_url?: string } | null = null;
+        if (c.type === ConversationType.INDIVIDUAL) {
           const other = await this.participantsRepository.findOne({
             where: { conversation_id: c.id, user_id: Not(userId) },
             relations: ['user'],
           });
-          const u = other?.user;
-          displayName = u
-            ? `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.telephone || 'Inconnu'
-            : 'Inconnu';
+          otherUser = other?.user ?? null;
+          if (!displayName && otherUser) {
+            displayName = `${otherUser.first_name || ''} ${otherUser.last_name || ''}`.trim() || otherUser.telephone || 'Inconnu';
+          }
         }
         const senderName =
           lastMsg?.user != null
             ? `${lastMsg.user.first_name || ''} ${lastMsg.user.last_name || ''}`.trim() || lastMsg.user.telephone
             : null;
+        const avatarUrl = c.type === ConversationType.INDIVIDUAL ? (otherUser?.avatar_url ?? c.avatar_url) : c.avatar_url;
         return {
           ...c,
           name: displayName ?? c.name ?? undefined,
+          avatar_url: avatarUrl ?? c.avatar_url,
           last_message: lastMsg?.content ?? null,
           last_message_sender_name: senderName ?? null,
           unread_count: myParticipant?.unread_count ?? 0,
@@ -177,6 +180,7 @@ export class ChatService {
     type?: MessageType;
     mediaUrl?: string;
     replyToId?: string;
+    metadata?: Record<string, any>;
   }): Promise<Message> {
     // Vérifier que l'utilisateur est participant
     const isParticipant = await this.isParticipant(data.conversationId, data.userId);
@@ -196,6 +200,7 @@ export class ChatService {
         type: data.type || MessageType.TEXT,
         media_url: data.mediaUrl,
         reply_to_id: data.replyToId,
+        metadata: data.metadata ?? undefined,
       });
 
       const savedMessage = await queryRunner.manager.save(Message, message);

@@ -79,11 +79,23 @@ const StoryViewer = () => {
       setLoading(true)
       const data = await api.get<Story[]>('/social/stories')
       const storiesArray = Array.isArray(data) ? data : []
-      setStories(storiesArray)
       if (id) {
-        const idx = storiesArray.findIndex((s: Story) => s.id === id)
-        if (idx >= 0) setCurrentIndex(idx)
-        try { await api.get(`/social/stories/${id}`); addViewedId(id) } catch {}
+        const clicked = storiesArray.find((s: Story) => s.id === id)
+        if (clicked) {
+          const oneUserStories = storiesArray
+            .filter((s: Story) => s.user_id === clicked.user_id)
+            .sort((a: Story, b: Story) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
+          setStories(oneUserStories)
+          const idx = oneUserStories.findIndex((s: Story) => s.id === id)
+          if (idx >= 0) setCurrentIndex(idx)
+          try { await api.get(`/social/stories/${id}`); addViewedId(id) } catch {}
+        } else {
+          setStories(storiesArray)
+          const idx = storiesArray.findIndex((s: Story) => s.id === id)
+          if (idx >= 0) setCurrentIndex(idx)
+        }
+      } else {
+        setStories(storiesArray)
       }
     } catch (err) {
       console.error('Erreur stories:', err)
@@ -214,7 +226,10 @@ const StoryViewer = () => {
     try {
       setReplySending(true)
       const conv = await chatService.createIndividualConversation(authorId)
-      await chatService.sendMessageRest(conv.id, text)
+      await chatService.sendMessageRest(conv.id, text, {
+        from_story: true,
+        story_id: currentStory?.id,
+      })
       setReplySent(true)
       setReplyText('')
       setTimeout(() => setReplySent(false), 2000)

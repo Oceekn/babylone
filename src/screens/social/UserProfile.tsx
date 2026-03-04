@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfilePhotoViewer from '../../components/common/ProfilePhotoViewer'
 import Button from '../../components/common/Button'
 import { Share, Loader, UserPlus, UserMinus } from 'lucide-react'
 import { api } from '../../services/api'
@@ -59,6 +60,7 @@ const UserProfile = () => {
   const [followLoading, setFollowLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts')
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false)
 
   useEffect(() => {
     if (id) loadData()
@@ -148,7 +150,13 @@ const UserProfile = () => {
     <ScreenLayout title="" showBack rightAction={<Share size={24} />} showBottomNav>
       <div className="user-profile">
         <div className="profile-info">
-          <div className="profile-avatar">
+          <div
+            className="profile-avatar"
+            style={{ minWidth: 100, minHeight: 100, cursor: user?.avatar_url ? 'pointer' : undefined }}
+            onClick={() => user?.avatar_url && setShowPhotoViewer(true)}
+            role={user?.avatar_url ? 'button' : undefined}
+            aria-label={user?.avatar_url ? 'Voir la photo de profil' : undefined}
+          >
             {user?.avatar_url ? (
               <img
                 src={user.avatar_url}
@@ -296,6 +304,14 @@ const UserProfile = () => {
           </div>
         )}
       </div>
+      {user?.avatar_url && (
+        <ProfilePhotoViewer
+          imageUrl={user.avatar_url}
+          isOpen={showPhotoViewer}
+          onClose={() => setShowPhotoViewer(false)}
+          alt={getFullName()}
+        />
+      )}
     </ScreenLayout>
   )
 }

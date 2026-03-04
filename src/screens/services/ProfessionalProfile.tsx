@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfilePhotoViewer from '../../components/common/ProfilePhotoViewer'
 import Button from '../../components/common/Button'
 import { Star, Calendar, MapPin, MessageCircle } from 'lucide-react'
 import { professionalsService, Professional } from '../../services/professionals.service'
@@ -19,6 +20,7 @@ const ProfessionalProfile = () => {
   const [reviews, setReviews] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -90,16 +92,31 @@ const ProfessionalProfile = () => {
   return (
     <ScreenLayout showBack showBottomNav>
       <div className="professional-profile">
-        <div className="image-carousel">
+        <div
+          className="image-carousel"
+          role={professional?.user?.avatar_url ? 'button' : undefined}
+          aria-label={professional?.user?.avatar_url ? 'Voir la photo de profil' : undefined}
+          style={{ cursor: professional?.user?.avatar_url ? 'pointer' : undefined }}
+          onClick={() => professional?.user?.avatar_url && setShowPhotoViewer(true)}
+        >
           {professional?.user?.avatar_url ? (
             <div className="carousel-image">
-              <img src={professional.user.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img
+                src={professional.user.avatar_url}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  const target = e.currentTarget
+                  target.style.display = 'none'
+                  const placeholder = target.closest('.carousel-image')?.nextElementSibling
+                  if (placeholder instanceof HTMLElement) placeholder.style.display = 'flex'
+                }}
+              />
             </div>
-          ) : (
-            <div className="carousel-image carousel-placeholder">
-              <span>{professional ? getUserName(professional).charAt(0).toUpperCase() : 'P'}</span>
-            </div>
-          )}
+          ) : null}
+          <div className="carousel-image carousel-placeholder" style={{ display: professional?.user?.avatar_url ? 'none' : 'flex' }}>
+            <span>{professional ? getUserName(professional).charAt(0).toUpperCase() : 'P'}</span>
+          </div>
         </div>
         {loading ? (
           <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -311,6 +328,14 @@ const ProfessionalProfile = () => {
           </Button>
         </div>
       </div>
+      {professional?.user?.avatar_url && (
+        <ProfilePhotoViewer
+          imageUrl={professional.user.avatar_url}
+          isOpen={showPhotoViewer}
+          onClose={() => setShowPhotoViewer(false)}
+          alt={professional ? getUserName(professional) : 'Photo de profil'}
+        />
+      )}
     </ScreenLayout>
   )
 }

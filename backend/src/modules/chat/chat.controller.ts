@@ -73,13 +73,18 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   async sendMessage(
     @Param('conversationId') conversationId: string,
-    @Body() body: { content: string },
+    @Body() body: { content: string; from_story?: boolean; story_id?: string },
     @Request() req,
   ) {
+    const metadata =
+      body.from_story || body.story_id
+        ? { from_story: !!body.from_story, story_id: body.story_id ?? null }
+        : undefined;
     const message = await this.chatService.createMessage({
       conversationId,
       userId: req.user.id,
       content: body.content?.trim() || '',
+      metadata,
     });
     return message;
   }

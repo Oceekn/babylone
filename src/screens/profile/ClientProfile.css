@@ -64,6 +64,8 @@
   border-radius: 50%;
   overflow: hidden;
   display: block;
+  width: 100px;
+  height: 100px;
 }
 
 .profile-avatar,

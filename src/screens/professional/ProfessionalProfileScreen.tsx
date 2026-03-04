@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfilePhotoViewer from '../../components/common/ProfilePhotoViewer'
 import Button from '../../components/common/Button'
 import { CheckCircle, ChevronRight, Camera, User, Image, MapPin, Briefcase, FileText, Star, Settings, Loader } from 'lucide-react'
 import { professionalsService, Professional } from '../../services/professionals.service'
@@ -22,6 +23,7 @@ const ProfessionalProfileScreen = () => {
   const cniInputRef = useRef<HTMLInputElement>(null)
   const [serviceIdForImage, setServiceIdForImage] = useState<string | null>(null)
   const [uploadingCni, setUploadingCni] = useState(false)
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false)
 
   useEffect(() => {
     loadProfessionalData()
@@ -175,17 +177,27 @@ const ProfessionalProfileScreen = () => {
                   <button
                     type="button"
                     className="profile-avatar-btn"
-                    onClick={() => avatarInputRef.current?.click()}
+                    onClick={() => {
+                      if (professional.user?.avatar_url) setShowPhotoViewer(true)
+                      else avatarInputRef.current?.click()
+                    }}
                     disabled={uploadingAvatar}
-                    title="Changer la photo de profil"
+                    title={professional.user?.avatar_url ? 'Voir la photo de profil' : 'Changer la photo de profil'}
                   >
-                    {professional.user?.avatar_url ? (
-                      <img src={professional.user.avatar_url} alt={getUserName(professional)} />
-                    ) : (
-                      <div className="profile-avatar-placeholder">
-                        <User size={48} />
-                      </div>
+                    {professional.user?.avatar_url && (
+                      <img
+                        src={professional.user.avatar_url}
+                        alt={getUserName(professional)}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                          const placeholder = e.currentTarget.nextElementSibling
+                          if (placeholder instanceof HTMLElement) placeholder.style.display = 'flex'
+                        }}
+                      />
                     )}
+                    <div className="profile-avatar-placeholder" style={{ display: professional.user?.avatar_url ? 'none' : 'flex' }}>
+                      <User size={48} />
+                    </div>
                   </button>
                   <span className="profile-avatar-badge">
                     {uploadingAvatar ? <Loader size={16} className="spin" /> : <Camera size={16} />}
@@ -441,6 +453,14 @@ const ProfessionalProfileScreen = () => {
           </>
         )}
       </div>
+      {professional?.user?.avatar_url && (
+        <ProfilePhotoViewer
+          imageUrl={professional.user.avatar_url}
+          isOpen={showPhotoViewer}
+          onClose={() => setShowPhotoViewer(false)}
+          alt={professional ? getUserName(professional) : 'Photo de profil'}
+        />
+      )}
     </ScreenLayout>
   )
 }

@@ -157,6 +157,9 @@ const IndividualChat = () => {
                 {!isMyMessage(msg) && (
                   <span className="message-sender">{getUserName(msg)}</span>
                 )}
+                {msg.metadata?.from_story && (
+                  <span className="message-from-story">À partir d&apos;une story</span>
+                )}
                 {msg.content && (
                   <p className="message-text">{msg.content}</p>
                 )}

@@ -121,45 +121,49 @@ const MessagesList = () => {
               <p>Chargement...</p>
             </div>
           ) : filteredMessages.length > 0 ? (
-            filteredMessages.map((conv) => (
-              <div
-                key={conv.id}
-                className="message-item"
-                onClick={() => navigate(`/messages/chat/${conv.id}`)}
-              >
-                <div className="message-avatar">
-                  {conv.avatar_url ? (
-                    <img src={conv.avatar_url} alt={conv.name} />
-                  ) : (
-                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
-                      {(conv.name || 'C').charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div className="message-content">
-                  <div className="message-header">
-                    <span className="message-name">{conv.name || 'Conversation'}</span>
-                    {conv.last_message_at && (
-                      <span className="message-time">{formatTime(conv.last_message_at)}</span>
+            filteredMessages.map((conv) => {
+              const hasUnread = !!(conv.unread_count && conv.unread_count > 0)
+              const chatPath = conv.type === 'group' ? `/messages/group/${conv.id}` : `/messages/chat/${conv.id}`
+              return (
+                <div
+                  key={conv.id}
+                  className={`message-item ${hasUnread ? 'has-unread' : ''}`}
+                  onClick={() => navigate(chatPath)}
+                >
+                  <div className="message-avatar">
+                    {conv.avatar_url ? (
+                      <img src={conv.avatar_url} alt="" />
+                    ) : (
+                      <span className="message-avatar-initial">{(conv.name || '?').charAt(0).toUpperCase()}</span>
                     )}
                   </div>
-                  <p className={`message-preview ${conv.unread_count && conv.unread_count > 0 ? 'unread' : ''}`}>
-                    {conv.unread_count && conv.unread_count > 0 && conv.last_message_sender_name ? (
-                      <>
-                        <span className="unread-dot" aria-hidden />
-                        <span className="sender-name">{conv.last_message_sender_name}: </span>
-                        {conv.last_message || 'Message'}
-                      </>
-                    ) : (
-                      conv.last_message || 'Aucun message'
-                    )}
-                  </p>
-                  {conv.unread_count && conv.unread_count > 0 && (
-                    <span className="unread-badge">{conv.unread_count}</span>
-                  )}
+                  <div className="message-body">
+                    <div className="message-row message-row-top">
+                      <span className="message-name">{conv.name || 'Conversation'}</span>
+                      <span className="message-meta">
+                        {conv.last_message_at && (
+                          <span className="message-time">{formatTime(conv.last_message_at)}</span>
+                        )}
+                        {hasUnread && (
+                          <span className="message-unread-badge">{conv.unread_count! > 99 ? '99+' : conv.unread_count}</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="message-row message-row-preview">
+                      <p className={`message-preview ${hasUnread ? 'unread' : ''}`}>
+                        {hasUnread && conv.last_message_sender_name && (
+                          <>
+                            <span className="unread-dot" aria-hidden />
+                            <span className="sender-name">{conv.last_message_sender_name}: </span>
+                          </>
+                        )}
+                        {conv.last_message || 'Aucun message'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           ) : (
             <div style={{ padding: '20px', textAlign: 'center' }}>
               <p>Aucune conversation</p>

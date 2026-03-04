@@ -15,6 +15,7 @@ interface Story {
   text?: string
   media_url?: string
   views_count: number
+  created_at?: string
   user?: { id: string; first_name?: string; last_name?: string; avatar_url?: string }
 }
 
@@ -134,6 +135,22 @@ const SocialFeed = () => {
     group.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  // Un cercle = une personne : grouper les stories par user_id
+  const storiesByUser = (() => {
+    const map = new Map<string, Story[]>()
+    const sorted = [...stories].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
+    for (const s of sorted) {
+      const list = map.get(s.user_id) || []
+      list.push(s)
+      map.set(s.user_id, list)
+    }
+    return Array.from(map.entries()).map(([user_id, userStories]) => ({
+      user_id,
+      user: userStories[0]?.user,
+      stories: userStories,
+    }))
+  })()
+
   return (
     <ScreenLayout
       title="Babylone"
@@ -155,15 +172,24 @@ const SocialFeed = () => {
               </div>
               <span className="story-name">Ma story</span>
             </div>
-            {stories.map((story) => {
-              const storyName = story.user
-                ? (story.user.first_name || 'Utilisateur')
-                : 'Utilisateur'
+            {storiesByUser.map(({ user_id, user, stories: userStories }) => {
+              const first = userStories[0]
+              const storyName = user ? (user.first_name || 'Utilisateur') : 'Utilisateur'
               return (
-                <div key={story.id} className="story-item" onClick={() => navigate(`/social/story/${story.id}`)}>
+                <div
+                  key={user_id}
+                  className="story-item"
+                  onClick={() =>
+                    navigate(`/social/story/${first.id}`, {
+                      state: { stories: userStories, startIndex: 0 },
+                    })
+                  }
+                >
                   <div className="story-avatar">
-                    {story.media_url ? (
-                      <img src={story.media_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    {user?.avatar_url ? (
+                      <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : first?.media_url ? (
+                      <img src={first.media_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                     ) : (
                       storyName.charAt(0).toUpperCase()
                     )}

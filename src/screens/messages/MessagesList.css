@@ -2,12 +2,13 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #F7FAFC;
+  background-color: #fff;
 }
 
 .search-section {
-  padding: 16px;
+  padding: 12px 16px;
   padding-bottom: 8px;
+  background: #fff;
 }
 
 .tabs {
@@ -15,6 +16,7 @@
   gap: 0;
   padding: 0 16px;
   border-bottom: 1px solid var(--border-grey);
+  background: #fff;
 }
 
 .tab {
@@ -38,73 +40,130 @@
 .messages-container {
   flex: 1;
   overflow-y: auto;
+  background: #fff;
 }
 
+/* Style type Telegram / WhatsApp : une ligne par conversation */
 .message-item {
   display: flex;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid var(--border-grey);
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  min-height: 72px;
+  border-bottom: 1px solid #eee;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.15s;
 }
 
 .message-item:hover {
-  background-color: var(--grey);
+  background-color: #f5f5f5;
+}
+
+.message-item.has-unread .message-name {
+  font-weight: 700;
 }
 
 .message-avatar {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background-color: var(--grey);
+  background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-.message-content {
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-avatar-initial {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+.message-body {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  gap: 2px;
 }
 
-.message-header {
+.message-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.message-row-top {
+  align-items: baseline;
 }
 
 .message-name {
-  font-weight: 600;
-  color: var(--text-dark);
   font-size: 16px;
+  font-weight: 600;
+  color: #111;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .message-time {
   font-size: 12px;
-  color: #A14545;
+  color: #667781;
+}
+
+.message-unread-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-row-preview {
+  margin-top: 0;
 }
 
 .message-preview {
   font-size: 14px;
-  color: var(--dark-grey);
+  color: #667781;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .message-preview.unread {
   font-weight: 600;
-  color: var(--text-dark);
+  color: #111;
 }
 
-/* Point lumineux pour conversation non lue */
 .unread-dot {
   display: inline-block;
   width: 8px;
@@ -112,15 +171,9 @@
   min-width: 8px;
   border-radius: 50%;
   background: var(--red);
-  box-shadow: 0 0 0 2px rgba(161, 69, 69, 0.35);
   margin-right: 6px;
   vertical-align: middle;
-  animation: unread-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes unread-pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 2px rgba(161, 69, 69, 0.35); }
-  50% { opacity: 0.85; box-shadow: 0 0 0 4px rgba(161, 69, 69, 0.2); }
+  flex-shrink: 0;
 }
 
 .message-preview .sender-name {
@@ -148,6 +201,5 @@
 }
 
 .fab:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
-

@@ -113,6 +113,22 @@ const ClientHomeFeed = () => {
     return 'Utilisateur'
   }
 
+  // Un cercle = une personne : grouper les stories par user_id (ordre chronologique par utilisateur)
+  const storiesByUser = (() => {
+    const map = new Map<string, Story[]>()
+    const sorted = [...stories].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
+    for (const s of sorted) {
+      const list = map.get(s.user_id) || []
+      list.push(s)
+      map.set(s.user_id, list)
+    }
+    return Array.from(map.entries()).map(([user_id, userStories]) => ({
+      user_id,
+      user: userStories[0]?.user,
+      stories: userStories,
+    }))
+  })()
+
   const formatPostDate = (dateString?: string) => {
     if (!dateString) return ''
     const date = parseUtc(dateString)
@@ -155,23 +171,29 @@ const ClientHomeFeed = () => {
                   </div>
                   <span className="story-name">Créer</span>
                 </div>
-                {stories.map((story) => {
-                  const seen = viewedStoryIds.has(story.id)
+                {storiesByUser.map(({ user_id, user, stories: userStories }) => {
+                  const first = userStories[0]
+                  const seen = userStories.every((s) => viewedStoryIds.has(s.id))
+                  const displayName = first ? getStoryName(first) : 'Utilisateur'
                   return (
                     <div
-                      key={story.id}
+                      key={user_id}
                       className="story-item"
-                      onClick={() => navigate(`/social/story/${story.id}`)}
+                      onClick={() =>
+                        navigate(`/social/story/${first!.id}`, {
+                          state: { stories: userStories, startIndex: 0 },
+                        })
+                      }
                     >
-                      <div 
+                      <div
                         className={`story-avatar ${seen ? 'story-avatar-seen' : ''}`}
-                        style={(story.user as UserWithAvatar | undefined)?.avatar_url ? { backgroundImage: `url(${(story.user as UserWithAvatar).avatar_url})` } : {}}
+                        style={(user as UserWithAvatar | undefined)?.avatar_url ? { backgroundImage: `url(${(user as UserWithAvatar).avatar_url})` } : {}}
                       >
-                        {!(story.user as UserWithAvatar | undefined)?.avatar_url && (
-                          <span>{getStoryName(story).charAt(0)}</span>
+                        {!(user as UserWithAvatar | undefined)?.avatar_url && (
+                          <span>{displayName.charAt(0)}</span>
                         )}
                       </div>
-                      <span className="story-name">{getStoryName(story)}</span>
+                      <span className="story-name">{displayName}</span>
                     </div>
                   )
                 })}

@@ -65,11 +65,12 @@ class AuthService {
     }
   }
 
-  // Déconnexion
+  // Déconnexion : vide le stockage uniquement. La redirection vers /login
+  // doit être faite par le composant (navigate) pour éviter un rechargement
+  // qui peut provoquer une 404 en production (SPA).
   logout(): void {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
-    window.location.href = '/login';
   }
 
   // Vérifier si l'utilisateur est connecté

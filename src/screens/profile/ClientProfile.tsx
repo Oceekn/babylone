@@ -1,10 +1,12 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfilePhotoViewer from '../../components/common/ProfilePhotoViewer'
 import { Settings, ChevronRight, Edit, Camera, LogOut, Image } from 'lucide-react'
 import { usersService, User } from '../../services/users.service'
 import { storageService } from '../../services/storage.service'
 import { authService } from '../../services/auth.service'
+import { chatSocketService } from '../../services/chat-socket.service'
 import { socialService } from '../../services/social.service'
 import './ClientProfile.css'
 
@@ -16,6 +18,7 @@ const ClientProfile = () => {
   const [postsCount, setPostsCount] = useState(0)
   const [followersCount, setFollowersCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -73,7 +76,9 @@ const ClientProfile = () => {
   }
 
   const handleLogout = () => {
+    chatSocketService.disconnect()
     authService.logout()
+    navigate('/login', { replace: true })
   }
 
   const menuItems = [
@@ -119,18 +124,29 @@ const ClientProfile = () => {
                 <button
                   type="button"
                   className="profile-avatar-btn"
-                  onClick={() => avatarInputRef.current?.click()}
+                  onClick={() => {
+                    if (user?.avatar_url) setShowPhotoViewer(true)
+                    else avatarInputRef.current?.click()
+                  }}
                   disabled={uploadingAvatar}
-                  title="Changer la photo de profil"
+                  title={user?.avatar_url ? 'Voir la photo de profil' : 'Changer la photo de profil'}
                 >
-                  {user?.avatar_url ? (
+                  {user?.avatar_url && (
                     <img
                       src={user.avatar_url}
                       alt={displayName}
                       className="profile-avatar-img"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        const placeholder = e.currentTarget.nextElementSibling
+                        if (placeholder instanceof HTMLElement) placeholder.style.display = 'flex'
+                      }}
                     />
-                  ) : (
-                    <div className="profile-avatar-placeholder">
+                  )}
+                  <div
+                    className="profile-avatar-placeholder"
+                    style={{ display: user?.avatar_url ? 'none' : 'flex' }}
+                  >
                       <svg viewBox="0 0 100 100" className="profile-avatar-octagon" xmlns="http://www.w3.org/2000/svg">
                         {/* Octagon: light blue lines */}
                         {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
@@ -156,13 +172,12 @@ const ClientProfile = () => {
                         {/* Letter b */}
                         <text x="50" y="58" fontSize="44" fontWeight="bold" fill="#87CEEB" textAnchor="middle" dominantBaseline="middle" fontFamily="Arial, sans-serif">b</text>
                       </svg>
-                    </div>
-                  )}
+                  </div>
                 </button>
                 <button
                   type="button"
                   className="profile-avatar-camera"
-                  onClick={(e) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
+                  onClick={(e) => { e.stopPropagation(); setShowPhotoViewer(false); avatarInputRef.current?.click(); }}
                   disabled={uploadingAvatar}
                   title="Changer la photo"
                   aria-label="Changer la photo"
@@ -226,6 +241,14 @@ const ClientProfile = () => {
           </>
         )}
       </div>
+      {user?.avatar_url && (
+        <ProfilePhotoViewer
+          imageUrl={user.avatar_url}
+          isOpen={showPhotoViewer}
+          onClose={() => setShowPhotoViewer(false)}
+          alt={displayName}
+        />
+      )}
     </ScreenLayout>
   )
 }

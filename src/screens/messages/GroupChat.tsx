@@ -128,6 +128,9 @@ const GroupChat = () => {
                 {msg.user_id !== currentUserId && (
                   <span className="message-sender">{getSenderName(msg)}</span>
                 )}
+                {msg.metadata?.from_story && (
+                  <span className="message-from-story">À partir d&apos;une story</span>
+                )}
                 <p className="message-text">{msg.content}</p>
                 <span className="message-time">
                   {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}

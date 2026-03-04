@@ -42,6 +42,8 @@ export interface Message {
   is_read: boolean;
   read_at?: string;
   reply_to_id?: string;
+  /** Indique que le message a été envoyé depuis une réponse à une story */
+  metadata?: { from_story?: boolean; story_id?: string };
   created_at: string;
   user?: {
     id: string;
@@ -78,8 +80,16 @@ class ChatService {
   }
 
   // Envoyer un message via REST (ex. réponse à une story sans ouvrir le chat)
-  async sendMessageRest(conversationId: string, content: string): Promise<Message> {
-    return api.post<Message>(API_ENDPOINTS.CHAT.SEND_MESSAGE(conversationId), { content });
+  async sendMessageRest(
+    conversationId: string,
+    content: string,
+    options?: { from_story?: boolean; story_id?: string },
+  ): Promise<Message> {
+    return api.post<Message>(API_ENDPOINTS.CHAT.SEND_MESSAGE(conversationId), {
+      content,
+      ...(options?.from_story && { from_story: true }),
+      ...(options?.story_id && { story_id: options.story_id }),
+    });
   }
 
   // Obtenir les messages d'une conversation

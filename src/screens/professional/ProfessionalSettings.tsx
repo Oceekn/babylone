@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import { ChevronRight, LogOut } from 'lucide-react'
 import { authService } from '../../services/auth.service'
+import { chatSocketService } from '../../services/chat-socket.service'
 import './ProfessionalSettings.css'
 
 const ProfessionalSettings = () => {
@@ -18,7 +19,9 @@ const ProfessionalSettings = () => {
   }
 
   const handleLogout = () => {
+    chatSocketService.disconnect()
     authService.logout()
+    navigate('/login', { replace: true })
   }
 
   type SettingItem = { label: string; description: string; onClick?: () => void; action: React.ReactNode }

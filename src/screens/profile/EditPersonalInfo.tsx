@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfilePhotoViewer from '../../components/common/ProfilePhotoViewer'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { Loader, Camera, Mail, Phone } from 'lucide-react'
@@ -17,6 +18,7 @@ const EditPersonalInfo = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false)
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -119,14 +121,26 @@ const EditPersonalInfo = () => {
             <button
               type="button"
               className="profile-avatar-btn"
-              onClick={() => avatarInputRef.current?.click()}
+              onClick={() => {
+                if (user?.avatar_url) setShowPhotoViewer(true)
+                else avatarInputRef.current?.click()
+              }}
               disabled={uploadingAvatar}
-              title="Changer la photo"
+              title={user?.avatar_url ? 'Voir la photo de profil' : 'Changer la photo'}
             >
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt={displayName} className="profile-avatar-img" />
-              ) : (
-                <div className="profile-avatar-placeholder">
+              {user?.avatar_url && (
+                <img
+                  src={user.avatar_url}
+                  alt={displayName}
+                  className="profile-avatar-img"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    const placeholder = e.currentTarget.nextElementSibling
+                    if (placeholder instanceof HTMLElement) placeholder.style.display = 'flex'
+                  }}
+                />
+              )}
+              <div className="profile-avatar-placeholder" style={{ display: user?.avatar_url ? 'none' : 'flex' }}>
                   <svg viewBox="0 0 100 100" className="profile-avatar-octagon" xmlns="http://www.w3.org/2000/svg">
                     {/* Octagon: light blue lines */}
                     {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
@@ -152,8 +166,7 @@ const EditPersonalInfo = () => {
                     {/* Letter b */}
                     <text x="50" y="58" fontSize="44" fontWeight="bold" fill="#87CEEB" textAnchor="middle" dominantBaseline="middle" fontFamily="Arial, sans-serif">b</text>
                   </svg>
-                </div>
-              )}
+              </div>
             </button>
             <span className="profile-avatar-badge">
               {uploadingAvatar ? (
@@ -225,6 +238,14 @@ const EditPersonalInfo = () => {
           {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
         </Button>
       </div>
+      {user?.avatar_url && (
+        <ProfilePhotoViewer
+          imageUrl={user.avatar_url}
+          isOpen={showPhotoViewer}
+          onClose={() => setShowPhotoViewer(false)}
+          alt={displayName}
+        />
+      )}
     </ScreenLayout>
   )
 }

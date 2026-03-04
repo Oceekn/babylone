@@ -59,6 +59,13 @@
   margin-right: 4px;
 }
 
+.message-from-story {
+  font-size: 11px;
+  opacity: 0.9;
+  font-style: italic;
+  color: var(--red);
+}
+
 .message-text {
   margin: 0;
   font-size: 14px;
