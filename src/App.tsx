@@ -1,67 +1,69 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import type { FutureConfig } from 'react-router-dom'
 import ProtectedRoute from './components/auth/ProtectedRoute'
-import WelcomeScreen from './screens/onboarding/WelcomeScreen'
-import SignUpPersonalInfo from './screens/onboarding/SignUpPersonalInfo'
-import SignUpContact from './screens/onboarding/SignUpContact'
-import VerificationScreen from './screens/onboarding/VerificationScreen'
-import ProfessionalSignUp from './screens/onboarding/ProfessionalSignUp'
-import LoginScreen from './screens/onboarding/LoginScreen'
-import PasswordRecoveryScreen from './screens/onboarding/PasswordRecoveryScreen'
-import ClientHomeFeed from './screens/client/ClientHomeFeed'
-import MessagesList from './screens/messages/MessagesList'
-import NewConversation from './screens/messages/NewConversation'
-import NewGroupConversation from './screens/messages/NewGroupConversation'
-import IndividualChat from './screens/messages/IndividualChat'
-import GroupChat from './screens/messages/GroupChat'
-import GroupInfo from './screens/messages/GroupInfo'
-import CallScreen from './screens/messages/CallScreen'
-import SocialFeed from './screens/social/SocialFeed'
-import PostDetail from './screens/social/PostDetail'
-import CreatePost from './screens/social/CreatePost'
-import CreateStory from './screens/social/CreateStory'
-import StoryViewer from './screens/social/StoryViewer'
-import UserProfile from './screens/social/UserProfile'
-import SearchUsers from './screens/social/SearchUsers'
-import FollowersList from './screens/social/FollowersList'
-import FollowingList from './screens/social/FollowingList'
-import GroupsDiscovery from './screens/social/GroupsDiscovery'
-import GroupPage from './screens/social/GroupPage'
-import ServicesSearch from './screens/services/ServicesSearch'
-import AdvancedFilters from './screens/services/AdvancedFilters'
-import SearchResults from './screens/services/SearchResults'
-import MapView from './screens/services/MapView'
-import ProfessionalProfile from './screens/services/ProfessionalProfile'
-import ServiceSelection from './screens/services/ServiceSelection'
-import ServiceDetail from './screens/services/ServiceDetail'
-import BookingCalendar from './screens/services/BookingCalendar'
-import PaymentMethod from './screens/services/PaymentMethod'
-import PaymentConfirmation from './screens/services/PaymentConfirmation'
-import MyBookingsList from './screens/bookings/MyBookingsList'
-import BookingDetail from './screens/bookings/BookingDetail'
-import ActiveBookingTracking from './screens/bookings/ActiveBookingTracking'
-import RescheduleBooking from './screens/bookings/RescheduleBooking'
-import RateReview from './screens/bookings/RateReview'
-import WalletHome from './screens/wallet/WalletHome'
-import TopUpWallet from './screens/wallet/TopUpWallet'
-import TransactionDetail from './screens/wallet/TransactionDetail'
-import ClientProfile from './screens/profile/ClientProfile'
-import EditPersonalInfo from './screens/profile/EditPersonalInfo'
-import PrivacySettings from './screens/profile/PrivacySettings'
-import NotificationsSettings from './screens/profile/NotificationsSettings'
-import Favorites from './screens/profile/Favorites'
-import StoriesArchive from './screens/profile/StoriesArchive'
-import ProfessionalDashboard from './screens/professional/ProfessionalDashboard'
-import ProfessionalProfileScreen from './screens/professional/ProfessionalProfileScreen'
-import ManageServices from './screens/professional/ManageServices'
-import CreateEditService from './screens/professional/CreateEditService'
-import CalendarManagement from './screens/professional/CalendarManagement'
-import BookingRequest from './screens/professional/BookingRequest'
-import ActiveBooking from './screens/professional/ActiveBooking'
-import FinancialDashboard from './screens/professional/FinancialDashboard'
-import WithdrawalRequest from './screens/professional/WithdrawalRequest'
-import ReviewsManagement from './screens/professional/ReviewsManagement'
-import ProfessionalSettings from './screens/professional/ProfessionalSettings'
+
+const WelcomeScreen = lazy(() => import('./screens/onboarding/WelcomeScreen'))
+const SignUpPersonalInfo = lazy(() => import('./screens/onboarding/SignUpPersonalInfo'))
+const SignUpContact = lazy(() => import('./screens/onboarding/SignUpContact'))
+const VerificationScreen = lazy(() => import('./screens/onboarding/VerificationScreen'))
+const ProfessionalSignUp = lazy(() => import('./screens/onboarding/ProfessionalSignUp'))
+const LoginScreen = lazy(() => import('./screens/onboarding/LoginScreen'))
+const PasswordRecoveryScreen = lazy(() => import('./screens/onboarding/PasswordRecoveryScreen'))
+const ClientHomeFeed = lazy(() => import('./screens/client/ClientHomeFeed'))
+const MessagesList = lazy(() => import('./screens/messages/MessagesList'))
+const NewConversation = lazy(() => import('./screens/messages/NewConversation'))
+const NewGroupConversation = lazy(() => import('./screens/messages/NewGroupConversation'))
+const IndividualChat = lazy(() => import('./screens/messages/IndividualChat'))
+const GroupChat = lazy(() => import('./screens/messages/GroupChat'))
+const GroupInfo = lazy(() => import('./screens/messages/GroupInfo'))
+const CallScreen = lazy(() => import('./screens/messages/CallScreen'))
+const SocialFeed = lazy(() => import('./screens/social/SocialFeed'))
+const PostDetail = lazy(() => import('./screens/social/PostDetail'))
+const CreatePost = lazy(() => import('./screens/social/CreatePost'))
+const CreateStory = lazy(() => import('./screens/social/CreateStory'))
+const StoryViewer = lazy(() => import('./screens/social/StoryViewer'))
+const UserProfile = lazy(() => import('./screens/social/UserProfile'))
+const SearchUsers = lazy(() => import('./screens/social/SearchUsers'))
+const FollowersList = lazy(() => import('./screens/social/FollowersList'))
+const FollowingList = lazy(() => import('./screens/social/FollowingList'))
+const GroupsDiscovery = lazy(() => import('./screens/social/GroupsDiscovery'))
+const GroupPage = lazy(() => import('./screens/social/GroupPage'))
+const ServicesSearch = lazy(() => import('./screens/services/ServicesSearch'))
+const AdvancedFilters = lazy(() => import('./screens/services/AdvancedFilters'))
+const SearchResults = lazy(() => import('./screens/services/SearchResults'))
+const MapView = lazy(() => import('./screens/services/MapView'))
+const ProfessionalProfile = lazy(() => import('./screens/services/ProfessionalProfile'))
+const ServiceSelection = lazy(() => import('./screens/services/ServiceSelection'))
+const ServiceDetail = lazy(() => import('./screens/services/ServiceDetail'))
+const BookingCalendar = lazy(() => import('./screens/services/BookingCalendar'))
+const PaymentMethod = lazy(() => import('./screens/services/PaymentMethod'))
+const PaymentConfirmation = lazy(() => import('./screens/services/PaymentConfirmation'))
+const MyBookingsList = lazy(() => import('./screens/bookings/MyBookingsList'))
+const BookingDetail = lazy(() => import('./screens/bookings/BookingDetail'))
+const ActiveBookingTracking = lazy(() => import('./screens/bookings/ActiveBookingTracking'))
+const RescheduleBooking = lazy(() => import('./screens/bookings/RescheduleBooking'))
+const RateReview = lazy(() => import('./screens/bookings/RateReview'))
+const WalletHome = lazy(() => import('./screens/wallet/WalletHome'))
+const TopUpWallet = lazy(() => import('./screens/wallet/TopUpWallet'))
+const TransactionDetail = lazy(() => import('./screens/wallet/TransactionDetail'))
+const ClientProfile = lazy(() => import('./screens/profile/ClientProfile'))
+const EditPersonalInfo = lazy(() => import('./screens/profile/EditPersonalInfo'))
+const PrivacySettings = lazy(() => import('./screens/profile/PrivacySettings'))
+const NotificationsSettings = lazy(() => import('./screens/profile/NotificationsSettings'))
+const Favorites = lazy(() => import('./screens/profile/Favorites'))
+const StoriesArchive = lazy(() => import('./screens/profile/StoriesArchive'))
+const ProfessionalDashboard = lazy(() => import('./screens/professional/ProfessionalDashboard'))
+const ProfessionalProfileScreen = lazy(() => import('./screens/professional/ProfessionalProfileScreen'))
+const ManageServices = lazy(() => import('./screens/professional/ManageServices'))
+const CreateEditService = lazy(() => import('./screens/professional/CreateEditService'))
+const CalendarManagement = lazy(() => import('./screens/professional/CalendarManagement'))
+const BookingRequest = lazy(() => import('./screens/professional/BookingRequest'))
+const ActiveBooking = lazy(() => import('./screens/professional/ActiveBooking'))
+const FinancialDashboard = lazy(() => import('./screens/professional/FinancialDashboard'))
+const WithdrawalRequest = lazy(() => import('./screens/professional/WithdrawalRequest'))
+const ReviewsManagement = lazy(() => import('./screens/professional/ReviewsManagement'))
+const ProfessionalSettings = lazy(() => import('./screens/professional/ProfessionalSettings'))
 
 const routerFutureFlags: FutureConfig = {
   v7_startTransition: true,
@@ -71,7 +73,8 @@ const routerFutureFlags: FutureConfig = {
 function App() {
   return (
     <Router future={routerFutureFlags}>
-      <Routes>
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#F7FAFC' }}>Chargement...</div>}>
+        <Routes>
         {/* Onboarding & Auth */}
         <Route path="/" element={<WelcomeScreen />} />
         <Route path="/signup/personal" element={<SignUpPersonalInfo />} />
@@ -150,7 +153,8 @@ function App() {
         <Route path="/professional/finances/withdraw" element={<ProtectedRoute><WithdrawalRequest /></ProtectedRoute>} />
         <Route path="/professional/reviews" element={<ProtectedRoute><ReviewsManagement /></ProtectedRoute>} />
         <Route path="/professional/settings" element={<ProtectedRoute><ProfessionalSettings /></ProtectedRoute>} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </Router>
   )
 }

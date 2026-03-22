@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Button from '../../components/common/Button'
@@ -20,23 +20,77 @@ const VerificationScreen = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const smsRefs = useRef<Array<HTMLInputElement | null>>([])
+  const emailRefs = useRef<Array<HTMLInputElement | null>>([])
+  const activeRefs = method === 'SMS' ? smsRefs : emailRefs
+  const activeCode = method === 'SMS' ? smsCode : emailCode
+  const setActiveCode = method === 'SMS' ? setSmsCode : setEmailCode
+
+  const digitsOnly = (s: string) => (s || '').replace(/\D/g, '')
+
+  const focusIndex = (idx: number) => {
+    const el = activeRefs.current[idx]
+    el?.focus()
+    el?.select?.()
+  }
+
+  const handleDigitInput = (index: number, value: string) => {
+    const v = digitsOnly(value).slice(0, 1)
+    const next = [...activeCode]
+    next[index] = v
+    setActiveCode(next)
+    setError(null)
+    if (v && index < next.length - 1) focusIndex(index + 1)
+  }
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (activeCode[index]) {
+        // effacer le digit courant
+        const next = [...activeCode]
+        next[index] = ''
+        setActiveCode(next)
+        setError(null)
+        e.preventDefault()
+        return
+      }
+      // aller au précédent si vide
+      if (index > 0) {
+        focusIndex(index - 1)
+        e.preventDefault()
+      }
+    }
+    if (e.key === 'ArrowLeft' && index > 0) {
+      focusIndex(index - 1)
+      e.preventDefault()
+    }
+    if (e.key === 'ArrowRight' && index < activeCode.length - 1) {
+      focusIndex(index + 1)
+      e.preventDefault()
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = digitsOnly(e.clipboardData.getData('text'))
+    if (!text) return
+    e.preventDefault()
+    const next = [...activeCode]
+    for (let i = 0; i < next.length; i++) {
+      next[i] = text[i] ?? ''
+    }
+    setActiveCode(next)
+    setError(null)
+    const lastFilled = Math.min(text.length, next.length) - 1
+    focusIndex(Math.max(0, Math.min(next.length - 1, lastFilled >= 0 ? lastFilled : 0)))
+  }
+
   useEffect(() => {
     if (!codeSent || countdown <= 0) return
     const t = setInterval(() => setCountdown((c) => c - 1), 1000)
     return () => clearInterval(t)
   }, [codeSent, countdown])
 
-  const handleCodeChange = (index: number, value: string, type: 'sms' | 'email') => {
-    if (value.length > 1) return
-    const newCode = type === 'sms' ? [...smsCode] : [...emailCode]
-    newCode[index] = value
-    if (type === 'sms') {
-      setSmsCode(newCode)
-    } else {
-      setEmailCode(newCode)
-    }
-    setError(null)
-  }
+  // La saisie UX est gérée par handleDigitInput / handlePaste
 
   const handleSendCode = async () => {
     const signupData = localStorage.getItem('signupData')
@@ -229,7 +283,10 @@ const VerificationScreen = () => {
                       maxLength={1}
                       className="code-input"
                       value={digit}
-                      onChange={(e) => handleCodeChange(index, e.target.value.replace(/\D/g, ''), 'sms')}
+                      ref={(el) => { smsRefs.current[index] = el }}
+                      onChange={(e) => handleDigitInput(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      onPaste={index === 0 ? handlePaste : undefined}
                     />
                   ))}
                 </div>
@@ -248,7 +305,10 @@ const VerificationScreen = () => {
                       maxLength={1}
                       className="code-input"
                       value={digit}
-                      onChange={(e) => handleCodeChange(index, e.target.value.replace(/\D/g, ''), 'email')}
+                      ref={(el) => { emailRefs.current[index] = el }}
+                      onChange={(e) => handleDigitInput(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      onPaste={index === 0 ? handlePaste : undefined}
                     />
                   ))}
                 </div>

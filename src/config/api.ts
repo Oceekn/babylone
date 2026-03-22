@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
   // Auth
   AUTH: {
     LOGIN: '/auth/login',
+    CHECK_IDENTIFIER: '/auth/check-identifier',
     REGISTER: '/auth/register',
     VERIFY_TOKEN: '/auth/verify',
     SEND_SIGNUP_CODE: '/auth/send-signup-code',

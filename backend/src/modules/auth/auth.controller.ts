@@ -43,6 +43,19 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  /**
+   * Vérifier si un email / téléphone existe avant de demander le mot de passe (UX 2 étapes).
+   */
+  @Post('check-identifier')
+  @HttpCode(HttpStatus.OK)
+  async checkIdentifier(@Body() body: { identifier: string }) {
+    if (!body?.identifier || !body.identifier.trim()) {
+      throw new BadRequestException('Identifiant requis');
+    }
+    const exists = await this.authService.checkIdentifierExists(body.identifier);
+    return { exists };
+  }
+
   @Post('send-signup-code')
   @HttpCode(HttpStatus.OK)
   async sendSignupCode(

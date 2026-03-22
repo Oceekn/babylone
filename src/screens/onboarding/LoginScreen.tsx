@@ -34,31 +34,30 @@ const LoginScreen = () => {
     setError(null) // Effacer l'erreur quand l'utilisateur tape
   }
 
-  const handleLogin = async () => {
-    if (!formData.emailOrPhone || !formData.password) {
-      if (!formData.emailOrPhone && !formData.password) {
-        setError('Veuillez remplir votre email/téléphone et votre mot de passe')
-      } else if (!formData.emailOrPhone) {
-        setError('Veuillez entrer votre email ou numéro de téléphone')
-      } else {
-        setError('Veuillez entrer votre mot de passe')
+  const normalizeIdentifier = (raw: string) => {
+    let identifier = raw.trim()
+    if (!identifier) return ''
+    // Si c'est un numero de telephone (pas un email), normaliser avec indicatif
+    if (!identifier.includes('@')) {
+      if (!identifier.startsWith('+')) {
+        identifier = identifier.startsWith('237') ? `+${identifier}` : `+237${identifier}`
       }
+    }
+    return identifier
+  }
+
+  const handleLogin = async () => {
+    const identifier = normalizeIdentifier(formData.emailOrPhone)
+    if (!identifier || !formData.password) {
+      if (!identifier && !formData.password) setError('Veuillez remplir votre email/téléphone et votre mot de passe')
+      else if (!identifier) setError('Veuillez entrer votre email ou numéro de téléphone')
+      else setError('Veuillez entrer votre mot de passe')
       return
     }
-
     setLoading(true)
     setError(null)
 
     try {
-      let identifier = formData.emailOrPhone.trim()
-
-      // Si c'est un numero de telephone (pas un email), normaliser avec indicatif
-      if (!identifier.includes('@')) {
-        if (!identifier.startsWith('+')) {
-          identifier = identifier.startsWith('237') ? `+${identifier}` : `+237${identifier}`
-        }
-      }
-
       const loginResponse = await authService.login({
         telephone: identifier, // Le backend accepte email ou telephone dans ce champ
         password: formData.password
@@ -79,8 +78,15 @@ const LoginScreen = () => {
     } catch (err: any) {
       console.error('Erreur de connexion:', err)
       const status = err.response?.status
+      const serverMessage = (err.response?.data?.message ?? '').toString()
       if (status === 401) {
-        setError('Identifiants incorrects. Pas encore de compte ? Inscrivez-vous d\'abord.')
+        if (serverMessage === 'USER_NOT_FOUND') {
+          setError('Email ou numéro de téléphone introuvable. Veuillez créer un compte.')
+        } else if (serverMessage === 'BAD_PASSWORD') {
+          setError('Mauvais mot de passe.')
+        } else {
+          setError('Identifiants incorrects.')
+        }
       } else if (!err.response) {
         setError('Impossible de joindre le serveur. Vérifiez que le backend est démarré (port 3000).')
       } else {
@@ -106,6 +112,7 @@ const LoginScreen = () => {
             placeholder="Entrez votre email ou téléphone"
             value={formData.emailOrPhone}
             onChange={(e) => handleInputChange('emailOrPhone', e.target.value)}
+            disabled={loading}
           />
           <Input
             label="Mot de passe"
@@ -113,6 +120,7 @@ const LoginScreen = () => {
             placeholder="Entrez votre mot de passe"
             value={formData.password}
             onChange={(e) => handleInputChange('password', e.target.value)}
+            disabled={loading}
             rightIcon={
               <button
                 type="button"
@@ -175,12 +183,7 @@ const LoginScreen = () => {
           </div>
         )}
 
-        <Button 
-          variant="primary" 
-          fullWidth 
-          onClick={handleLogin}
-          disabled={loading}
-        >
+        <Button variant="primary" fullWidth onClick={handleLogin} disabled={loading}>
           {loading ? 'Connexion...' : 'Se connecter'}
         </Button>
 

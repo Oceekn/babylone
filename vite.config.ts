@@ -3,8 +3,18 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // Base relative pour que l'app fonctionne en mobile (Capacitor) avec file://
   base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['lucide-react'],
+          api: ['axios', 'socket.io-client'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     open: true,

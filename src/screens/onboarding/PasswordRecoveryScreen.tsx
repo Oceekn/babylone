@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
@@ -14,12 +14,60 @@ const PasswordRecoveryScreen = () => {
   const [step, setStep] = useState<Step>('request')
   const [method, setMethod] = useState<'SMS' | 'Email'>('SMS')
   const [identifier, setIdentifier] = useState('')
-  const [code, setCode] = useState('')
+  const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', ''])
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [resetToken, setResetToken] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const codeRefs = useRef<Array<HTMLInputElement | null>>([])
+  const digitsOnly = (s: string) => (s || '').replace(/\D/g, '')
+  const code = codeDigits.join('')
+
+  const focusCode = (idx: number) => {
+    const el = codeRefs.current[idx]
+    el?.focus()
+    el?.select?.()
+  }
+
+  const handleCodeChange = (index: number, value: string) => {
+    const v = digitsOnly(value).slice(0, 1)
+    const next = [...codeDigits]
+    next[index] = v
+    setCodeDigits(next)
+    setError(null)
+    if (v && index < next.length - 1) focusCode(index + 1)
+  }
+
+  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (codeDigits[index]) {
+        const next = [...codeDigits]
+        next[index] = ''
+        setCodeDigits(next)
+        setError(null)
+        e.preventDefault()
+        return
+      }
+      if (index > 0) {
+        focusCode(index - 1)
+        e.preventDefault()
+      }
+    }
+  }
+
+  const handleCodePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = digitsOnly(e.clipboardData.getData('text'))
+    if (!text) return
+    e.preventDefault()
+    const next = [...codeDigits]
+    for (let i = 0; i < next.length; i++) next[i] = text[i] ?? ''
+    setCodeDigits(next)
+    setError(null)
+    const lastFilled = Math.min(text.length, next.length) - 1
+    focusCode(Math.max(0, Math.min(next.length - 1, lastFilled >= 0 ? lastFilled : 0)))
+  }
 
   const handleRequestReset = async () => {
     if (!identifier.trim()) {
@@ -45,7 +93,7 @@ const PasswordRecoveryScreen = () => {
   }
 
   const handleVerifyCode = () => {
-    if (!code.trim() || code.length < 4) {
+    if (!code.trim() || code.length !== 6) {
       setError('Veuillez entrer le code de verification')
       return
     }
@@ -169,13 +217,28 @@ const PasswordRecoveryScreen = () => {
               Code MVP : 123456
             </div>
 
-            <Input
-              label="Code de verification"
-              type="text"
-              placeholder="Entrez le code a 6 chiffres"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
+            <div className="code-section">
+              <label className="code-label">Code de verification</label>
+              <div className="code-inputs">
+                {codeDigits.map((d, i) => (
+                  <input
+                    key={i}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    className="code-input"
+                    value={d}
+                    ref={(el) => { codeRefs.current[i] = el }}
+                    onChange={(e) => handleCodeChange(i, e.target.value)}
+                    onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                    onPaste={i === 0 ? handleCodePaste : undefined}
+                  />
+                ))}
+              </div>
+              <div className="code-hint" style={{ marginTop: 10 }}>
+                Astuce : vous pouvez coller le code d'un seul coup.
+              </div>
+            </div>
 
             {error && (
               <div className="recovery-error">

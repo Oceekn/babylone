@@ -31,6 +31,10 @@ export interface AuthResponse {
 }
 
 class AuthService {
+  async checkIdentifier(identifier: string): Promise<{ exists: boolean }> {
+    return api.post<{ exists: boolean }>(API_ENDPOINTS.AUTH.CHECK_IDENTIFIER, { identifier });
+  }
+
   // Connexion (réelle, backend JWT)
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials);

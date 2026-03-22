@@ -6,6 +6,7 @@ interface InputProps {
   value?: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   onKeyPress?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  disabled?: boolean
   label?: string
   icon?: React.ReactNode
   rightIcon?: React.ReactNode
@@ -19,6 +20,7 @@ const Input = ({
   value, 
   onChange, 
   onKeyPress,
+  disabled,
   label,
   icon,
   rightIcon,
@@ -36,6 +38,7 @@ const Input = ({
           value={value}
           onChange={onChange}
           onKeyPress={onKeyPress}
+          disabled={disabled}
           className={`input ${error ? 'error' : ''}`}
         />
         {rightIcon && <span className="input-icon-right">{rightIcon}</span>}

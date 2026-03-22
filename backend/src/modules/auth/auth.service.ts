@@ -24,19 +24,34 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async validateUser(identifier: string, password: string): Promise<User | null> {
+  async checkIdentifierExists(identifier: string): Promise<boolean> {
+    const raw = (identifier ?? '').trim();
+    if (!raw) return false;
+    let user = await this.usersService.findByTelephone(raw);
+    if (!user && raw.includes('@')) {
+      user = await this.usersService.findByEmail(raw);
+    }
+    return !!user;
+  }
+
+  /**
+   * Auth login: distinguer "compte introuvable" vs "mauvais mot de passe"
+   * pour permettre un UX en 2 étapes côté frontend.
+   */
+  async validateUser(identifier: string, password: string): Promise<User> {
+    const raw = (identifier ?? '').trim();
     // Chercher par telephone ou par email
-    let user = await this.usersService.findByTelephone(identifier);
-    if (!user && identifier.includes('@')) {
-      user = await this.usersService.findByEmail(identifier);
+    let user = await this.usersService.findByTelephone(raw);
+    if (!user && raw.includes('@')) {
+      user = await this.usersService.findByEmail(raw);
     }
     if (!user) {
-      return null;
+      throw new UnauthorizedException('USER_NOT_FOUND');
     }
 
     const isPasswordValid = await this.usersService.verifyPassword(user, password);
     if (!isPasswordValid) {
-      return null;
+      throw new UnauthorizedException('BAD_PASSWORD');
     }
 
     return user;
