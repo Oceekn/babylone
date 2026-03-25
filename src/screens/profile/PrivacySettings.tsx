@@ -6,17 +6,7 @@ import {
   PrivacyStatusVisibility,
   PrivacyGroupInvite,
 } from '../../services/users.service'
-import {
-  AlertCircle,
-  Loader,
-  Shield,
-  MessageCircle,
-  BookUser,
-  Users,
-  Eye,
-  Info,
-  CheckCircle2,
-} from 'lucide-react'
+import { AlertCircle, Loader, CheckCircle2 } from 'lucide-react'
 import Button from '../../components/common/Button'
 import './PrivacySettings.css'
 
@@ -30,22 +20,22 @@ const DM_OPTIONS: { value: PrivacyDmFrom; title: string; hint: string }[] = [
     value: 'contacts_or_follow',
     title: 'Mode par défaut',
     hint:
-      'Abonné à votre compte, ou votre numéro Babylone figure dans son répertoire importé.',
+      'Abonné à vous ou votre numéro dans son répertoire importé.',
   },
   {
     value: 'followers',
     title: 'Uniquement mes abonnés',
-    hint: 'La personne doit s’être abonnée à votre compte.',
+    hint: 'La personne doit vous suivre.',
   },
   {
     value: 'mutual',
     title: 'Abonnement mutuel',
-    hint: 'Vous devez vous suivre l’un l’autre.',
+    hint: 'Vous devez vous suivre mutuellement.',
   },
   {
     value: 'none',
     title: 'Aucune nouvelle conversation',
-    hint: 'Personne ne peut vous envoyer un premier message.',
+    hint: 'Personne ne peut envoyer un premier message.',
   },
 ]
 
@@ -53,7 +43,7 @@ const GROUP_OPTIONS: { value: PrivacyGroupInvite; title: string; hint: string }[
   {
     value: 'dm_only',
     title: 'Si conversation privée existante',
-    hint: 'Parmi les personnes avec qui vous avez déjà discuté en message privé.',
+    hint: 'Parmi ceux avec qui vous avez déjà discuté.',
   },
   {
     value: 'none',
@@ -63,9 +53,9 @@ const GROUP_OPTIONS: { value: PrivacyGroupInvite; title: string; hint: string }[
 ]
 
 const STATUS_OPTIONS: { value: PrivacyStatusVisibility; title: string; hint: string }[] = [
-  { value: 'everyone', title: 'Tout le monde', hint: 'Visibilité maximale (affichage futur).' },
+  { value: 'everyone', title: 'Tout le monde', hint: 'Affichage futur.' },
   { value: 'followers', title: 'Mes abonnés', hint: 'Uniquement vos abonnés.' },
-  { value: 'nobody', title: 'Personne', hint: 'Activité masquée pour les autres.' },
+  { value: 'nobody', title: 'Personne', hint: 'Activité masquée.' },
 ]
 
 const PrivacySettings = () => {
@@ -154,39 +144,23 @@ const PrivacySettings = () => {
       <div className="privacy-settings">
         {loading ? (
           <div className="privacy-loading">
-            <Loader className="spin" size={28} aria-hidden />
+            <Loader className="spin" size={26} aria-hidden />
             <p className="privacy-loading-text">Chargement…</p>
           </div>
         ) : (
           <>
-            <section className="privacy-hero" aria-labelledby="privacy-hero-title">
-              <div className="privacy-hero-icon" aria-hidden>
-                <Shield size={22} strokeWidth={2} />
-              </div>
-              <div className="privacy-hero-body">
-                <h2 id="privacy-hero-title" className="privacy-hero-title">
-                  Comment fonctionnent les messages
-                </h2>
-                <p className="privacy-hero-text">
-                  En général, une <strong>nouvelle</strong> conversation nécessite un <strong>abonnement à votre compte</strong> (vous suivre),{' '}
-                  <em>sauf</em> l’exception « répertoire » ci‑dessous. Si une discussion existe déjà, vous continuez à échanger normalement.
-                </p>
-              </div>
-            </section>
+            <p className="privacy-intro">
+              Une nouvelle conversation demande en général que la personne s’abonne à votre compte, sauf exception répertoire ci‑dessous. Les discussions déjà ouvertes ne sont pas concernées.
+            </p>
 
-            <section className="privacy-section" aria-labelledby="sec-messages">
-              <div className="privacy-section-head">
-                <MessageCircle className="privacy-section-icon" size={20} aria-hidden />
-                <h2 id="sec-messages" className="privacy-section-title">
-                  Premiers messages
-                </h2>
-              </div>
-              <p className="privacy-section-lead">Qui peut vous envoyer un premier message ?</p>
-              <div className="privacy-radio-group" role="radiogroup" aria-label="Qui peut envoyer un premier message">
+            <div className="privacy-block">
+              <p className="privacy-block-label">Premiers messages</p>
+              <p className="privacy-block-hint">Qui peut vous envoyer un premier message ?</p>
+              <div className="privacy-list" role="radiogroup" aria-label="Premiers messages">
                 {DM_OPTIONS.map((opt) => (
                   <label
                     key={opt.value}
-                    className={`privacy-option-card ${privacyDmFrom === opt.value ? 'selected' : ''} ${saving ? 'disabled' : ''}`}
+                    className={`privacy-row ${privacyDmFrom === opt.value ? 'is-selected' : ''} ${saving ? 'is-disabled' : ''}`}
                   >
                     <input
                       type="radio"
@@ -199,31 +173,25 @@ const PrivacySettings = () => {
                         void save({ privacy_dm_from: opt.value })
                       }}
                     />
-                    <span className="privacy-option-indicator" aria-hidden />
-                    <span className="privacy-option-text">
-                      <span className="privacy-option-title">{opt.title}</span>
-                      <span className="privacy-option-hint">{opt.hint}</span>
+                    <span className="privacy-row-body">
+                      <span className="privacy-row-title">{opt.title}</span>
+                      <span className="privacy-row-sub">{opt.hint}</span>
                     </span>
+                    <span className="privacy-row-radio" aria-hidden />
                   </label>
                 ))}
               </div>
-            </section>
+            </div>
 
-            <section className="privacy-section" aria-labelledby="sec-contacts">
-              <div className="privacy-section-head">
-                <BookUser className="privacy-section-icon" size={20} aria-hidden />
-                <h2 id="sec-contacts" className="privacy-section-title">
-                  Répertoire importé
-                </h2>
-              </div>
-              <p className="privacy-section-lead">
-                Numéros de <strong>votre</strong> téléphone (même format que sur Babylone, ex. +237…). En mode défaut,{' '}
-                <strong>vous pourrez leur écrire sans les suivre</strong> si leur numéro est ici. Pour qu’on vous écrive sans vous suivre, ces personnes doivent avoir importé <strong>votre</strong> numéro.
+            <div className="privacy-block">
+              <p className="privacy-block-label">Répertoire importé</p>
+              <p className="privacy-block-hint">
+                Même format que sur Babylone (ex. +237…). En mode défaut, vous pourrez écrire sans suivre si le numéro est ici ; pour qu’on vous écrive sans vous suivre, votre numéro doit être dans leur répertoire.
               </p>
-              <div className="privacy-contacts-panel">
+              <div className="privacy-list privacy-list--pad">
                 <textarea
-                  className="privacy-contacts-textarea"
-                  rows={4}
+                  className="privacy-textarea"
+                  rows={3}
                   placeholder={'+2376…\n+2376…'}
                   value={contactsText}
                   onChange={(e) => setContactsText(e.target.value)}
@@ -237,26 +205,21 @@ const PrivacySettings = () => {
                     className={`privacy-sync-msg privacy-sync-msg--${syncTone ?? 'neutral'}`}
                     role="status"
                   >
-                    {syncTone === 'ok' && <CheckCircle2 className="privacy-sync-icon" size={16} aria-hidden />}
+                    {syncTone === 'ok' && <CheckCircle2 className="privacy-sync-icon" size={15} aria-hidden />}
                     {syncMsg}
                   </p>
                 )}
               </div>
-            </section>
+            </div>
 
-            <section className="privacy-section" aria-labelledby="sec-groups">
-              <div className="privacy-section-head">
-                <Users className="privacy-section-icon" size={20} aria-hidden />
-                <h2 id="sec-groups" className="privacy-section-title">
-                  Groupes
-                </h2>
-              </div>
-              <p className="privacy-section-lead">Qui peut vous ajouter à un groupe ?</p>
-              <div className="privacy-radio-group" role="radiogroup" aria-label="Invitations aux groupes">
+            <div className="privacy-block">
+              <p className="privacy-block-label">Groupes</p>
+              <p className="privacy-block-hint">Qui peut vous ajouter à un groupe ?</p>
+              <div className="privacy-list" role="radiogroup" aria-label="Groupes">
                 {GROUP_OPTIONS.map((opt) => (
                   <label
                     key={opt.value}
-                    className={`privacy-option-card ${privacyGroupInvite === opt.value ? 'selected' : ''} ${saving ? 'disabled' : ''}`}
+                    className={`privacy-row ${privacyGroupInvite === opt.value ? 'is-selected' : ''} ${saving ? 'is-disabled' : ''}`}
                   >
                     <input
                       type="radio"
@@ -269,29 +232,24 @@ const PrivacySettings = () => {
                         void save({ privacy_group_invite: opt.value })
                       }}
                     />
-                    <span className="privacy-option-indicator" aria-hidden />
-                    <span className="privacy-option-text">
-                      <span className="privacy-option-title">{opt.title}</span>
-                      <span className="privacy-option-hint">{opt.hint}</span>
+                    <span className="privacy-row-body">
+                      <span className="privacy-row-title">{opt.title}</span>
+                      <span className="privacy-row-sub">{opt.hint}</span>
                     </span>
+                    <span className="privacy-row-radio" aria-hidden />
                   </label>
                 ))}
               </div>
-            </section>
+            </div>
 
-            <section className="privacy-section" aria-labelledby="sec-status">
-              <div className="privacy-section-head">
-                <Eye className="privacy-section-icon" size={20} aria-hidden />
-                <h2 id="sec-status" className="privacy-section-title">
-                  Statut &amp; activité
-                </h2>
-              </div>
-              <p className="privacy-section-lead">Qui peut voir votre activité (affichage futur)</p>
-              <div className="privacy-radio-group" role="radiogroup" aria-label="Visibilité du statut">
+            <div className="privacy-block">
+              <p className="privacy-block-label">Statut et activité</p>
+              <p className="privacy-block-hint">Qui peut voir votre activité (affichage futur)</p>
+              <div className="privacy-list" role="radiogroup" aria-label="Statut">
                 {STATUS_OPTIONS.map((opt) => (
                   <label
                     key={opt.value}
-                    className={`privacy-option-card ${privacyStatus === opt.value ? 'selected' : ''} ${saving ? 'disabled' : ''}`}
+                    className={`privacy-row ${privacyStatus === opt.value ? 'is-selected' : ''} ${saving ? 'is-disabled' : ''}`}
                   >
                     <input
                       type="radio"
@@ -304,22 +262,19 @@ const PrivacySettings = () => {
                         void save({ privacy_status_visibility: opt.value })
                       }}
                     />
-                    <span className="privacy-option-indicator" aria-hidden />
-                    <span className="privacy-option-text">
-                      <span className="privacy-option-title">{opt.title}</span>
-                      <span className="privacy-option-hint">{opt.hint}</span>
+                    <span className="privacy-row-body">
+                      <span className="privacy-row-title">{opt.title}</span>
+                      <span className="privacy-row-sub">{opt.hint}</span>
                     </span>
+                    <span className="privacy-row-radio" aria-hidden />
                   </label>
                 ))}
               </div>
-            </section>
-
-            <div className="privacy-hint-box" role="note">
-              <Info className="privacy-hint-icon" size={18} aria-hidden />
-              <p>
-                <strong>Rappel :</strong> pour créer un groupe, vous ne pouvez ajouter que des personnes avec qui vous avez déjà une conversation individuelle.
-              </p>
             </div>
+
+            <p className="privacy-footnote">
+              Pour créer un groupe, vous ne pouvez ajouter que des personnes avec qui vous avez déjà une conversation individuelle.
+            </p>
           </>
         )}
 
