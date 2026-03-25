@@ -44,15 +44,18 @@ export interface FeedParams {
   cursor?: string;
   limit?: number;
   pays_code?: string;
+  /** `global` = pour tous ; `following` = uniquement les comptes suivis (onglet Amis) */
+  scope?: 'global' | 'following';
 }
 
 class SocialService {
   // Obtenir le feed social
   async getFeed(params: FeedParams = {}): Promise<{ posts: Post[]; nextCursor?: string }> {
-    const queryParams: any = {}
+    const queryParams: Record<string, string> = {}
     if (params.cursor) queryParams.cursor = params.cursor
     if (params.limit) queryParams.limit = params.limit.toString()
     if (params.pays_code) queryParams.pays_code = params.pays_code
+    if (params.scope === 'following') queryParams.scope = 'following'
 
     return api.get<{ posts: Post[]; nextCursor?: string }>(API_ENDPOINTS.SOCIAL.FEED, {
       params: queryParams,

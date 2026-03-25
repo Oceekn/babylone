@@ -1,0 +1,135 @@
+.perm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.perm-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.perm-modal-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: min(88vh, 620px);
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+  padding: 12px 20px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  animation: perm-modal-slide 0.28s ease-out;
+}
+
+@keyframes perm-modal-slide {
+  from {
+    transform: translateY(100%);
+    opacity: 0.85;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.perm-modal-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  margin: 0 auto 12px;
+}
+
+.perm-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 50%;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.perm-modal-close:hover {
+  background: #e2e8f0;
+}
+
+.perm-modal-card {
+  padding-top: 8px;
+}
+
+.perm-modal-icon {
+  color: #a14545;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.perm-modal-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  padding: 0 36px;
+}
+
+.perm-modal-card p {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #475569;
+  text-align: center;
+}
+
+.perm-modal-skip {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border: none;
+  background: none;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.perm-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.perm-modal-warn {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #92400e;
+}
+
+.perm-modal-warn svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}

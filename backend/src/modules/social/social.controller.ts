@@ -29,13 +29,16 @@ export class SocialController {
     @Query('cursor') cursor: string,
     @Query('limit') limit: string,
     @Query('pays_code') paysCode: string,
+    @Query('scope') scope: string,
     @Request() req,
   ) {
+    const feedScope = scope === 'following' ? 'following' : 'global';
     return this.socialService.getFeed(
       req.user.id,
       paysCode,
       cursor,
       limit ? parseInt(limit, 10) : 20,
+      feedScope,
     );
   }
 

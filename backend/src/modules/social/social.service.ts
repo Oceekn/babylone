@@ -65,27 +65,49 @@ export class SocialService {
     return this.postsRepository.save(post);
   }
 
-  // Obtenir le feed avec pagination par curseur (OPTIMISÉ)
+  /**
+   * @param scope `global` = tous les posts publics ; `following` = uniquement les comptes suivis par userId (onglet « Amis »).
+   */
   async getFeed(
     userId: string,
     paysCode?: string,
     cursor?: string,
     limit: number = 20,
+    scope: 'global' | 'following' = 'global',
   ): Promise<{ posts: Post[]; nextCursor: string | null }> {
+    if (scope === 'following') {
+      const followCount = await this.followsRepository.count({
+        where: { follower_id: userId },
+      });
+      if (followCount === 0) {
+        return { posts: [], nextCursor: null };
+      }
+    }
+
     const queryBuilder = this.postsRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
       .leftJoinAndSelect('post.likes', 'likes')
       .where('post.is_public = :isPublic', { isPublic: true })
+      .andWhere(
+        "COALESCE(post.metadata->>'scope', '') != :realizationScope",
+        { realizationScope: SocialService.REALIZATION_METADATA_SCOPE },
+      )
       .orderBy('post.created_at', 'DESC')
-      .take(limit + 1); // Prendre un de plus pour vérifier s'il y a une page suivante
+      .take(limit + 1);
+
+    if (scope === 'following') {
+      queryBuilder.andWhere(
+        `post.user_id IN (SELECT f.following_id FROM babylone.follows f WHERE f.follower_id = :followerId)`,
+        { followerId: userId },
+      );
+    }
 
     if (paysCode) {
       queryBuilder.andWhere('post.pays_code = :paysCode', { paysCode });
     }
 
     if (cursor) {
-      // Pagination par curseur (plus rapide que OFFSET)
       const cursorPost = await this.postsRepository.findOne({ where: { id: cursor } });
       if (cursorPost) {
         queryBuilder.andWhere('post.created_at < :cursorDate', {

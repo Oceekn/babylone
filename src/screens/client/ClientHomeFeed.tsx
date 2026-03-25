@@ -6,6 +6,8 @@ import { professionalsService, Professional } from '../../services/professionals
 import { api } from '../../services/api'
 import { socialService } from '../../services/social.service'
 import { parseUtc } from '../../utils/date'
+import PermissionPromptsModal from '../../components/common/PermissionPromptsModal'
+import { usePermissionPopup } from '../../hooks/usePermissionPopup'
 import './ClientHomeFeed.css'
 
 interface Post {
@@ -62,6 +64,7 @@ const ClientHomeFeed = () => {
     { id: 'p3', title: 'Clean Home', discount: '10% off', image: '✨' },
   ])
   const [loading, setLoading] = useState(true)
+  const [permModalOpen, setPermModalOpen] = usePermissionPopup()
 
   useEffect(() => { loadData() }, [])
 
@@ -153,6 +156,7 @@ const ClientHomeFeed = () => {
   }
 
   return (
+    <>
     <ScreenLayout showBottomNav>
       <div className="client-home-feed">
         <header className="feed-header">
@@ -316,6 +320,8 @@ const ClientHomeFeed = () => {
         )}
       </div>
     </ScreenLayout>
+    <PermissionPromptsModal open={permModalOpen} onClose={() => setPermModalOpen(false)} />
+    </>
   )
 }
 

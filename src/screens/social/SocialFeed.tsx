@@ -80,6 +80,7 @@ const SocialFeed = () => {
         limit: 10,
         cursor,
         pays_code: 'CM',
+        scope: activeTab === 'amis' ? 'following' : 'global',
       })
       const newPosts = response.posts || []
       if (reset) {
@@ -382,7 +383,11 @@ const SocialFeed = () => {
                 })
               ) : (
                 <div style={{ padding: '20px', textAlign: 'center' }}>
-                  <p>Aucun post à afficher</p>
+                  <p>
+                    {activeTab === 'amis'
+                      ? 'Aucun post pour l’instant : suivez des comptes pour voir leurs publications ici, ou il n’y en a pas encore.'
+                      : 'Aucun post à afficher'}
+                  </p>
                 </div>
               )}
               

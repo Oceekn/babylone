@@ -114,7 +114,7 @@ function App() {
         <Route path="/social/groups" element={<ProtectedRoute><GroupsDiscovery /></ProtectedRoute>} />
         <Route path="/social/group/:id" element={<ProtectedRoute><GroupPage /></ProtectedRoute>} />
         
-        {/* Services (connexion + onboarding permissions avant accès) */}
+        {/* Services (connexion requise ; autorisations en popup sur l’accueil) */}
         <Route path="/services" element={<ProtectedRoute><ServicesSearch /></ProtectedRoute>} />
         <Route path="/services/filters" element={<ProtectedRoute><AdvancedFilters /></ProtectedRoute>} />
         <Route path="/services/results" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />

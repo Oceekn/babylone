@@ -5,10 +5,13 @@ import Button from '../../components/common/Button'
 import { Star, Loader } from 'lucide-react'
 import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { bookingsService, Booking } from '../../services/bookings.service'
+import PermissionPromptsModal from '../../components/common/PermissionPromptsModal'
+import { usePermissionPopup } from '../../hooks/usePermissionPopup'
 import './ProfessionalDashboard.css'
 
 const ProfessionalDashboard = () => {
   const navigate = useNavigate()
+  const [permModalOpen, setPermModalOpen] = usePermissionPopup()
   const [loading, setLoading] = useState(true)
   const [todayBookings, setTodayBookings] = useState<Booking[]>([])
   const [monthRevenue, setMonthRevenue] = useState(0)
@@ -43,6 +46,7 @@ const ProfessionalDashboard = () => {
   const greeting = user.first_name ? `Bonjour, ${user.first_name}` : 'Bonjour'
 
   return (
+    <>
     <ScreenLayout title="Dashboard" rightAction={<ProfessionalInboxBell />} showBottomNav>
       <div className="professional-dashboard">
         <h2 className="greeting">{greeting}</h2>
@@ -118,6 +122,8 @@ const ProfessionalDashboard = () => {
         </div>
       </div>
     </ScreenLayout>
+    <PermissionPromptsModal open={permModalOpen} onClose={() => setPermModalOpen(false)} />
+    </>
   )
 }
 
