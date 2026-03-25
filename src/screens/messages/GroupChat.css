@@ -129,3 +129,36 @@ button.message-from-story-btn {
   color: var(--primary-blue);
 }
 
+.send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    transform 0.2s;
+}
+
+.send-btn:not(:disabled):hover {
+  background-color: var(--red);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.send-btn:not(:disabled) {
+  background-color: var(--red);
+  color: #fff;
+  cursor: pointer;
+}
+
+.send-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

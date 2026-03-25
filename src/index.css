@@ -16,6 +16,10 @@
   --border-grey: #E0E0E0;
   /** Fond interface client */
   --client-bg: #F7FAFC;
+  /** Accent espace professionnel (messagerie, boutons pro) */
+  --pro-accent: #125ced;
+  --pro-accent-muted: #4d6699;
+  --pro-surface: #e8ebf2;
 }
 
 html {

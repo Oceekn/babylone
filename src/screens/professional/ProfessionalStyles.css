@@ -143,3 +143,103 @@
   border: none !important;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Messagerie pro : bulles, liste, FAB — bleu pro, pas rouge client           */
+/* -------------------------------------------------------------------------- */
+
+[data-professional='true'] .message-bubble.me {
+  background-color: var(--pro-accent, #125ced) !important;
+  color: var(--white) !important;
+}
+
+[data-professional='true'] .message-bubble.other {
+  background-color: var(--pro-surface, #e8ebf2) !important;
+  color: var(--text-dark) !important;
+}
+
+[data-professional='true'] .message-bubble.other .message-from-story {
+  color: var(--pro-accent-muted, #4d6699) !important;
+}
+
+[data-professional='true'] .group-chat .message-from-story {
+  color: var(--pro-accent-muted, #4d6699) !important;
+}
+
+[data-professional='true'] button.message-from-story-btn {
+  background: rgba(18, 92, 237, 0.1) !important;
+  border-color: rgba(18, 92, 237, 0.35) !important;
+  color: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .message-bubble.me button.message-from-story-btn {
+  color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-professional='true'] .chat-input {
+  background-color: var(--pro-surface, #e8ebf2) !important;
+}
+
+[data-professional='true'] .chat-input:focus {
+  border-color: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .input-icon-btn:hover {
+  color: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .send-btn:not(:disabled) {
+  background-color: var(--pro-accent, #125ced) !important;
+  color: #fff !important;
+}
+
+[data-professional='true'] .send-btn:not(:disabled):hover {
+  background-color: #0f4fc4 !important;
+}
+
+/* Liste conversations (MessagesList) */
+[data-professional='true'] .messages-list .tab.active {
+  color: var(--pro-accent, #125ced) !important;
+  border-bottom-color: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .message-unread-badge {
+  background: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .unread-dot {
+  background: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .message-preview .sender-name {
+  color: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .fab {
+  background-color: var(--pro-accent, #125ced) !important;
+  box-shadow: 0 4px 14px rgba(18, 92, 237, 0.35) !important;
+}
+
+[data-professional='true'] .fab:hover {
+  background-color: #0f4fc4 !important;
+}
+
+/* Nouvelle conversation / groupe */
+[data-professional='true'] .new-group-conversation .chip {
+  background: var(--pro-accent, #125ced) !important;
+  color: var(--white) !important;
+}
+
+[data-professional='true'] .new-group-conversation .contact-item.selected {
+  background-color: rgba(18, 92, 237, 0.08) !important;
+}
+
+[data-professional='true'] .new-group-conversation .check-label {
+  color: var(--pro-accent, #125ced) !important;
+}
+
+[data-professional='true'] .contact-status.online {
+  color: var(--pro-accent, #125ced) !important;
+}
+
