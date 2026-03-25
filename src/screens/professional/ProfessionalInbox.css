@@ -27,7 +27,7 @@
 
 .pro-inbox-tabs button.active {
   color: var(--text-dark, #0f172a);
-  border-bottom-color: var(--orange, #ff6b35);
+  border-bottom-color: var(--pro-accent, #125ced);
 }
 
 .pro-inbox-panel {
@@ -52,4 +52,19 @@
 
 .pro-notifications-settings-btn {
   margin-top: 8px;
+}
+
+/* Barre de recherche pro: supprimer la teinte rose héritée du style client */
+.pro-inbox .search-section .input {
+  background-color: var(--pro-surface, #e8ebf2) !important;
+  border-color: #d6ddea !important;
+}
+
+.pro-inbox .search-section .input:focus {
+  border-color: var(--pro-accent, #125ced) !important;
+  box-shadow: 0 0 0 2px rgba(18, 92, 237, 0.12) !important;
+}
+
+.pro-inbox .search-section .input-icon-left {
+  color: var(--pro-accent-muted, #4d6699) !important;
 }

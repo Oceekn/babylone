@@ -226,9 +226,14 @@ const ProfessionalProfileScreen = () => {
               </div>
             </div>
             <div className="profile-edit-cta-wrap">
-              <Button variant="primary" fullWidth onClick={() => navigate('/professional/profile/edit')}>
-                Modifier ma fiche (nom, domaine, localisation)
-              </Button>
+              <button
+                type="button"
+                className="profile-edit-cta"
+                onClick={() => navigate('/professional/profile/edit')}
+              >
+                <span>Modifier ma fiche</span>
+                <ChevronRight size={18} />
+              </button>
             </div>
           </>
         )}
@@ -424,13 +429,18 @@ const ProfessionalProfileScreen = () => {
               )}
             </div>
             <div className="profile-section">
-              <h3 className="profile-section-title">Réalisations (fiche client)</h3>
-              <div className="profile-card" style={{ padding: 16 }}>
-                <p style={{ margin: '0 0 12px', fontSize: 14, color: 'var(--dark-grey)', lineHeight: 1.45 }}>
-                  Publiez des photos ou courtes vidéos visibles dans l&apos;onglet <strong>Réalisations</strong> de votre fiche publique. Les clients peuvent aimer et commenter, comme sur le fil social.
+              <h3 className="profile-section-title">Réalisations</h3>
+              <div className="profile-card profile-card--compact">
+                <p className="profile-realizations-lead">
+                  Photos et courtes vidéos visibles sur votre fiche publique.
                 </p>
-                <Button variant="secondary" fullWidth onClick={() => navigate('/social/create-post?realization=1')}>
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <Button
+                  variant="outline"
+                  fullWidth
+                  className="profile-action-outline"
+                  onClick={() => navigate('/social/create-post?realization=1')}
+                >
+                  <span className="profile-action-with-icon">
                     <Sparkles size={18} /> Publier une réalisation
                   </span>
                 </Button>

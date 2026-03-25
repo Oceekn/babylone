@@ -16,14 +16,18 @@
 }
 
 .edit-pro-intro {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #475569;
-  margin: 0 0 20px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #64748b;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
 }
 
 .edit-pro-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .edit-pro-h2 {

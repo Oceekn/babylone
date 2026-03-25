@@ -207,8 +207,7 @@ const EditProfessionalProfile = () => {
     <ScreenLayout title="Modifier la fiche" showBack showBottomNav rightAction={<ProfessionalInboxBell />} contentClassName="edit-pro-page">
       <div className="edit-professional-profile">
         <p className="edit-pro-intro">
-          Mettez à jour votre <strong>nom</strong>, <strong>nom commercial</strong>, <strong>domaine</strong> (ex. passer de la finance à
-          l’informatique), votre <strong>adresse</strong> et votre <strong>position</strong> pour les recherches à proximité.
+          Mettez à jour vos informations principales pour garder votre fiche professionnelle claire et visible.
         </p>
 
         <section className="edit-pro-section">
