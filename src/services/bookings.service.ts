@@ -116,6 +116,11 @@ class BookingsService {
     return api.get('/bookings/stats');
   }
 
+  /** Pastille onglet Réservations (pro) */
+  async getProNavBadge(): Promise<{ badge: number; pending: number; todayActive: number }> {
+    return api.get('/bookings/pro/nav-badge');
+  }
+
   async getReviewsReceived(): Promise<Booking[]> {
     return api.get<Booking[]>('/bookings/reviews-received');
   }

@@ -35,6 +35,9 @@ export class SocialService {
     private dataSource: DataSource,
   ) {}
 
+  /** Posts marqués ainsi n'apparaissent pas dans le feed général ; ils sont listés sur la fiche pro (Réalisations). */
+  static readonly REALIZATION_METADATA_SCOPE = 'realization' as const;
+
   // Créer un post
   async createPost(data: {
     userId: string;
@@ -42,13 +45,21 @@ export class SocialService {
     imageUrl?: string;
     videoUrl?: string;
     paysCode?: string;
+    /** Seul `{ scope: 'realization' }` est accepté pour limiter les abus. */
+    metadata?: Record<string, unknown>;
   }): Promise<Post> {
+    let metadata: Record<string, unknown> | undefined;
+    if (data.metadata?.scope === SocialService.REALIZATION_METADATA_SCOPE) {
+      metadata = { scope: SocialService.REALIZATION_METADATA_SCOPE };
+    }
+
     const post = this.postsRepository.create({
       user_id: data.userId,
       content: data.content,
       image_url: data.imageUrl,
       video_url: data.videoUrl,
       pays_code: data.paysCode || 'CM',
+      metadata,
     });
 
     return this.postsRepository.save(post);
@@ -222,13 +233,21 @@ export class SocialService {
   }
 
   // Posts d'un utilisateur
-  async getPostsByUser(userId: string): Promise<Post[]> {
-    return this.postsRepository.find({
-      where: { user_id: userId },
-      relations: ['user'],
-      order: { created_at: 'DESC' },
-      take: 50,
-    });
+  async getPostsByUser(userId: string, scope?: string): Promise<Post[]> {
+    const qb = this.postsRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .where('post.user_id = :userId', { userId })
+      .orderBy('post.created_at', 'DESC')
+      .take(50);
+
+    if (scope === SocialService.REALIZATION_METADATA_SCOPE) {
+      qb.andWhere("post.metadata->>'scope' = :rs", {
+        rs: SocialService.REALIZATION_METADATA_SCOPE,
+      }).andWhere('post.is_public = :isPublic', { isPublic: true });
+    }
+
+    return qb.getMany();
   }
 
   // --- STORIES ---
@@ -246,13 +265,33 @@ export class SocialService {
     return this.storiesRepository.save(story);
   }
 
-  async getStoriesFeed(): Promise<Story[]> {
-    return this.storiesRepository.find({
+  /**
+   * Masque le nombre de vues pour les spectateurs : seul l'auteur de la story le voit.
+   * Objet plain (sans spread d'entité TypeORM) pour une sérialisation JSON fiable.
+   */
+  private applyStoryViewsPrivacy(story: Story, viewerUserId: string): Story {
+    if (!story || story.user_id === viewerUserId) {
+      return story;
+    }
+    return {
+      id: story.id,
+      user_id: story.user_id,
+      media_url: story.media_url,
+      text: story.text,
+      expires_at: story.expires_at,
+      created_at: story.created_at,
+      user: story.user,
+    } as Story;
+  }
+
+  async getStoriesFeed(viewerUserId: string): Promise<Story[]> {
+    const stories = await this.storiesRepository.find({
       where: { expires_at: MoreThan(new Date()) },
       relations: ['user'],
       order: { created_at: 'DESC' },
       take: 50,
     });
+    return stories.map((s) => this.applyStoryViewsPrivacy(s, viewerUserId));
   }
 
   async getMyStories(userId: string, archived: boolean): Promise<Story[]> {
@@ -275,17 +314,17 @@ export class SocialService {
     if (!story) {
       throw new NotFoundException('Story introuvable');
     }
-    story.views_count += 1;
-    await this.storiesRepository.save(story);
     const existingView = await this.storyViewsRepository.findOne({
       where: { story_id: id, user_id: viewerUserId },
     });
     if (!existingView) {
+      story.views_count += 1;
+      await this.storiesRepository.save(story);
       await this.storyViewsRepository.save(
         this.storyViewsRepository.create({ story_id: id, user_id: viewerUserId }),
       );
     }
-    return story;
+    return this.applyStoryViewsPrivacy(story, viewerUserId);
   }
 
   async getStoryViewers(storyId: string, requesterUserId: string): Promise<StoryView[]> {
@@ -302,20 +341,30 @@ export class SocialService {
     });
   }
 
+  /** Normalise les variantes Unicode (cœur nu vs ❤️, etc.) */
+  private normalizeStoryReactionEmoji(raw: string): string | null {
+    const s = (raw || '').trim();
+    const allowed = ['❤️', '🔥', '😂'] as const;
+    if (allowed.includes(s as (typeof allowed)[number])) return s;
+    // Cœur sans sélecteur VS16
+    if (s === '\u2764' || s === '\u2764\uFE0F') return '❤️';
+    return null;
+  }
+
   async addStoryReaction(storyId: string, userId: string, emoji: string): Promise<StoryReaction> {
     const story = await this.storiesRepository.findOne({ where: { id: storyId } });
     if (!story) throw new NotFoundException('Story introuvable');
-    const allowed = ['❤️', '🔥', '😂'];
-    if (!allowed.includes(emoji)) {
+    const canonical = this.normalizeStoryReactionEmoji(emoji);
+    if (!canonical) {
       throw new ForbiddenException('Réaction non autorisée');
     }
     let reaction = await this.storyReactionsRepository.findOne({
       where: { story_id: storyId, user_id: userId },
     });
     if (reaction) {
-      reaction.emoji = emoji;
+      reaction.emoji = canonical;
     } else {
-      reaction = this.storyReactionsRepository.create({ story_id: storyId, user_id: userId, emoji });
+      reaction = this.storyReactionsRepository.create({ story_id: storyId, user_id: userId, emoji: canonical });
     }
     return this.storyReactionsRepository.save(reaction);
   }
@@ -343,7 +392,10 @@ export class SocialService {
     });
   }
 
-  async getHighlightWithStories(highlightId: string): Promise<{ highlight: Highlight; stories: Story[] }> {
+  async getHighlightWithStories(
+    highlightId: string,
+    viewerUserId: string,
+  ): Promise<{ highlight: Highlight; stories: Story[] }> {
     const highlight = await this.highlightsRepository.findOne({
       where: { id: highlightId },
       relations: ['user'],
@@ -354,7 +406,10 @@ export class SocialService {
       relations: ['story', 'story.user'],
       order: { position: 'ASC' },
     });
-    const stories = rows.map((r) => r.story).filter(Boolean);
+    const stories = rows
+      .map((r) => r.story)
+      .filter(Boolean)
+      .map((s) => this.applyStoryViewsPrivacy(s as Story, viewerUserId));
     return { highlight, stories };
   }
 
@@ -422,6 +477,15 @@ export class SocialService {
       where: { follower_id: followerId, following_id: followingId },
     });
     return !!one;
+  }
+
+  /** Les deux se suivent mutuellement */
+  async isMutual(userA: string, userB: string): Promise<boolean> {
+    const [ab, ba] = await Promise.all([
+      this.isFollowing(userA, userB),
+      this.isFollowing(userB, userA),
+    ]);
+    return ab && ba;
   }
 
   async getFollowersCount(userId: string): Promise<number> {

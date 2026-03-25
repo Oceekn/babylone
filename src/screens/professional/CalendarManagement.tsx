@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, Loader } from 'lucide-react'
 import { bookingsService, Booking } from '../../services/bookings.service'
 import './CalendarManagement.css'
@@ -78,7 +79,7 @@ const CalendarManagement = () => {
   }
 
   return (
-    <ScreenLayout title="Calendrier" showBack showBottomNav>
+    <ScreenLayout title="Calendrier" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="calendar-management">
         <div className="month-selector">
           <button onClick={prevMonth}><ChevronLeft size={20} /></button>

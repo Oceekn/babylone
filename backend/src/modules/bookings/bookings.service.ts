@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Brackets } from 'typeorm';
 import { Booking, BookingStatus } from './entities/booking.entity';
+import { Professional } from '../professionals/entities/professional.entity';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingStatusDto, ReviewBookingDto, RescheduleBookingDto } from './dto/update-booking.dto';
 import { WalletService } from '../wallet/wallet.service';
@@ -16,6 +17,8 @@ export class BookingsService {
   constructor(
     @InjectRepository(Booking)
     private bookingsRepository: Repository<Booking>,
+    @InjectRepository(Professional)
+    private professionalsRepository: Repository<Professional>,
     private walletService: WalletService,
     private transactionsService: TransactionsService,
   ) {}
@@ -158,6 +161,62 @@ export class BookingsService {
     };
   }
 
+  /**
+   * Compteur pour la pastille « Réservations » : toutes les demandes en attente
+   * + les réservations du jour (confirmées ou en cours), sans doublon.
+   */
+  async getProNavBadge(userId: string): Promise<{ badge: number; pending: number; todayActive: number }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const t0 = today.toISOString();
+    const t1 = tomorrow.toISOString();
+
+    const pending = await this.bookingsRepository
+      .createQueryBuilder('b')
+      .leftJoin('b.professional', 'professional')
+      .leftJoin('professional.user', 'proUser')
+      .where('proUser.id = :userId', { userId })
+      .andWhere('b.status = :st', { st: BookingStatus.PENDING })
+      .getCount();
+
+    const todayActive = await this.bookingsRepository
+      .createQueryBuilder('b')
+      .leftJoin('b.professional', 'professional')
+      .leftJoin('professional.user', 'proUser')
+      .where('proUser.id = :userId', { userId })
+      .andWhere('b.scheduled_at >= :t0', { t0 })
+      .andWhere('b.scheduled_at < :t1', { t1 })
+      .andWhere('b.status IN (:...sts)', {
+        sts: [BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS],
+      })
+      .getCount();
+
+    const badge = await this.bookingsRepository
+      .createQueryBuilder('b')
+      .leftJoin('b.professional', 'professional')
+      .leftJoin('professional.user', 'proUser')
+      .where('proUser.id = :userId', { userId })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('b.status = :pending', { pending: BookingStatus.PENDING }).orWhere(
+            new Brackets((qb2) => {
+              qb2
+                .where('b.scheduled_at >= :t0', { t0 })
+                .andWhere('b.scheduled_at < :t1', { t1 })
+                .andWhere('b.status IN (:...daySts)', {
+                  daySts: [BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS],
+                });
+            }),
+          );
+        }),
+      )
+      .getCount();
+
+    return { badge, pending, todayActive };
+  }
+
   // Avis recus par le professionnel (par user_id, pour le dashboard pro)
   async getReviewsReceived(userId: string): Promise<Booking[]> {
     return this.bookingsRepository
@@ -229,16 +288,24 @@ export class BookingsService {
     return booking;
   }
 
-  /** Créneaux disponibles pour un professionnel à une date (8h-19h, pas 30 min) */
+  /** Créneaux disponibles pour un professionnel à une date (horaires configurables sur la fiche pro, pas 30 min) */
   async getAvailability(professionalId: string, dateStr: string): Promise<{ time: string }[]> {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) {
       throw new BadRequestException('Date invalide');
     }
+    const prof = await this.professionalsRepository.findOne({ where: { id: professionalId } });
+    let startH = prof?.work_start_hour ?? WORK_START_HOUR;
+    let endH = prof?.work_end_hour ?? WORK_END_HOUR;
+    if (typeof startH !== 'number' || startH < 0 || startH > 23) startH = WORK_START_HOUR;
+    if (typeof endH !== 'number' || endH < 0 || endH > 23) endH = WORK_END_HOUR;
+    if (endH <= startH) {
+      endH = Math.min(23, startH + 1);
+    }
     const dayStart = new Date(date);
-    dayStart.setHours(WORK_START_HOUR, 0, 0, 0);
+    dayStart.setHours(startH, 0, 0, 0);
     const dayEnd = new Date(date);
-    dayEnd.setHours(WORK_END_HOUR, 0, 0, 0);
+    dayEnd.setHours(endH, 0, 0, 0);
 
     const bookings = await this.bookingsRepository.find({
       where: {

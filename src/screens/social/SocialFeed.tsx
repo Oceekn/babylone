@@ -14,7 +14,8 @@ interface Story {
   user_id: string
   text?: string
   media_url?: string
-  views_count: number
+  /** Masqué par l’API pour les stories des autres */
+  views_count?: number
   created_at?: string
   user?: { id: string; first_name?: string; last_name?: string; avatar_url?: string }
 }

@@ -59,6 +59,17 @@
   font-style: italic;
 }
 
+button.message-from-story-btn {
+  background: rgba(161, 69, 69, 0.12);
+  border: 1px solid rgba(161, 69, 69, 0.35);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  text-align: left;
+  width: 100%;
+}
+
 .message-bubble.me .message-from-story {
   color: rgba(255, 255, 255, 0.9);
 }

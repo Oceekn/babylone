@@ -1,0 +1,61 @@
+.perm-onboarding {
+  padding: 20px 16px 32px;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.perm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.perm-card h2 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--text-dark, #1a1a2e);
+}
+
+.perm-card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dark-grey, #666);
+}
+
+.perm-icon {
+  color: #a14545;
+  align-self: flex-start;
+}
+
+.perm-skip {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.perm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.perm-warn {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: #856404;
+  background: #fff3cd;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.perm-loading {
+  text-align: center;
+  padding: 24px;
+  color: #888;
+}

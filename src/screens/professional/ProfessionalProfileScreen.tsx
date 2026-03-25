@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import ProfilePhotoViewer from '../../components/common/ProfilePhotoViewer'
 import Button from '../../components/common/Button'
-import { CheckCircle, ChevronRight, Camera, User, Image, MapPin, Briefcase, FileText, Star, Settings, Loader } from 'lucide-react'
+import { CheckCircle, ChevronRight, Camera, User, Image, MapPin, Briefcase, FileText, Star, Settings, Loader, Sparkles } from 'lucide-react'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { professionalsService, Professional } from '../../services/professionals.service'
 import { servicesService, Service } from '../../services/services.service'
 import { usersService } from '../../services/users.service'
@@ -140,7 +141,7 @@ const ProfessionalProfileScreen = () => {
   }
 
   return (
-    <ScreenLayout title="Profil" showBack showBottomNav>
+    <ScreenLayout title="Profil" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="professional-profile-screen">
         {loading ? (
           <div className="profile-loading">
@@ -223,6 +224,11 @@ const ProfessionalProfileScreen = () => {
                   )}
                 </div>
               </div>
+            </div>
+            <div className="profile-edit-cta-wrap">
+              <Button variant="primary" fullWidth onClick={() => navigate('/professional/profile/edit')}>
+                Modifier ma fiche (nom, domaine, localisation)
+              </Button>
             </div>
           </>
         )}
@@ -416,6 +422,19 @@ const ProfessionalProfileScreen = () => {
                   </button>
                 </div>
               )}
+            </div>
+            <div className="profile-section">
+              <h3 className="profile-section-title">Réalisations (fiche client)</h3>
+              <div className="profile-card" style={{ padding: 16 }}>
+                <p style={{ margin: '0 0 12px', fontSize: 14, color: 'var(--dark-grey)', lineHeight: 1.45 }}>
+                  Publiez des photos ou courtes vidéos visibles dans l&apos;onglet <strong>Réalisations</strong> de votre fiche publique. Les clients peuvent aimer et commenter, comme sur le fil social.
+                </p>
+                <Button variant="secondary" fullWidth onClick={() => navigate('/social/create-post?realization=1')}>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    <Sparkles size={18} /> Publier une réalisation
+                  </span>
+                </Button>
+              </div>
             </div>
             <div className="profile-section">
               <h3 className="profile-section-title">Paramètres</h3>

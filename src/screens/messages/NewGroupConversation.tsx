@@ -1,21 +1,59 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { Search, X } from 'lucide-react'
 import { usersService, User } from '../../services/users.service'
 import { chatService } from '../../services/chat.service'
+import { authService } from '../../services/auth.service'
+import { getMessagesBasePath } from '../../utils/professionalMessages'
 import './NewGroupConversation.css'
 
 const NewGroupConversation = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const messagesBase = getMessagesBasePath(location.pathname)
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [selected, setSelected] = useState<User[]>([])
+  const [allowedUserIds, setAllowedUserIds] = useState<Set<string>>(new Set())
+  const [loadingChats, setLoadingChats] = useState(true)
+
+  const me = authService.getCurrentUserId()
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const convs = await chatService.getConversations()
+        if (cancelled) return
+        const ids = new Set<string>()
+        for (const c of convs) {
+          if (c.type !== 'individual') continue
+          if (c.other_user_id) {
+            ids.add(c.other_user_id)
+            continue
+          }
+          const parts = c.participants
+          if (!parts?.length) continue
+          const other = parts.find((p) => p.user_id !== me)
+          if (other?.user_id) ids.add(other.user_id)
+        }
+        setAllowedUserIds(ids)
+      } catch {
+        setAllowedUserIds(new Set())
+      } finally {
+        if (!cancelled) setLoadingChats(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [me])
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
@@ -53,9 +91,18 @@ const NewGroupConversation = () => {
         name,
         participant_ids: selected.map((u) => u.id),
       })
-      navigate(`/messages/group/${conversation.id}`)
-    } catch (err) {
+      navigate(`${messagesBase}/group/${conversation.id}`)
+    } catch (err: unknown) {
       console.error('Erreur creation groupe:', err)
+      const raw = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message
+      const msg = Array.isArray(raw) ? raw[0] : raw
+      if (msg === 'GROUP_REQUIRES_PRIOR_CHAT') {
+        alert('Vous ne pouvez ajouter que des personnes avec qui vous avez déjà une conversation privée.')
+      } else if (msg === 'GROUP_INVITE_BLOCKED') {
+        alert('Cette personne refuse d’être ajoutée à des groupes.')
+      } else {
+        alert('Impossible de créer le groupe.')
+      }
     } finally {
       setCreating(false)
     }
@@ -100,14 +147,18 @@ const NewGroupConversation = () => {
         </div>
 
         <div className="contacts-list">
-          {loading ? (
+          {loadingChats ? (
+            <p className="list-hint">Chargement de vos conversations…</p>
+          ) : loading ? (
             <p className="list-hint">Recherche...</p>
           ) : searchQuery.length < 2 ? (
             <p className="list-hint">Tapez au moins 2 caracteres pour rechercher</p>
           ) : results.length === 0 ? (
             <p className="list-hint">Aucun utilisateur trouve</p>
           ) : (
-            results.map((user) => {
+            results
+              .filter((user) => allowedUserIds.has(user.id))
+              .map((user) => {
               const isSelected = selected.some((u) => u.id === user.id)
               return (
                 <div
@@ -132,6 +183,14 @@ const NewGroupConversation = () => {
               )
             })
           )}
+          {!loadingChats &&
+            searchQuery.length >= 2 &&
+            results.length > 0 &&
+            results.every((u) => !allowedUserIds.has(u.id)) && (
+              <p className="list-hint" style={{ color: '#a14545' }}>
+                Vous ne pouvez ajouter que des personnes avec qui vous avez déjà discuté en message privé. Ouvrez d’abord une conversation avec eux.
+              </p>
+            )}
         </div>
 
         <Button

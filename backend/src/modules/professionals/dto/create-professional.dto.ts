@@ -2,7 +2,9 @@ import {
   IsString,
   IsOptional,
   IsNumber,
-  IsBoolean,
+  IsInt,
+  Min,
+  Max,
   Matches,
   ValidateNested,
 } from 'class-validator';
@@ -48,5 +50,17 @@ export class CreateProfessionalDto {
   @Type(() => PositionDto)
   @IsOptional()
   position?: PositionDto;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(23)
+  work_start_hour?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(23)
+  work_end_hour?: number;
 }
 

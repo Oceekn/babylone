@@ -55,6 +55,7 @@ const Favorites = lazy(() => import('./screens/profile/Favorites'))
 const StoriesArchive = lazy(() => import('./screens/profile/StoriesArchive'))
 const ProfessionalDashboard = lazy(() => import('./screens/professional/ProfessionalDashboard'))
 const ProfessionalProfileScreen = lazy(() => import('./screens/professional/ProfessionalProfileScreen'))
+const EditProfessionalProfile = lazy(() => import('./screens/professional/EditProfessionalProfile'))
 const ManageServices = lazy(() => import('./screens/professional/ManageServices'))
 const CreateEditService = lazy(() => import('./screens/professional/CreateEditService'))
 const CalendarManagement = lazy(() => import('./screens/professional/CalendarManagement'))
@@ -64,6 +65,9 @@ const FinancialDashboard = lazy(() => import('./screens/professional/FinancialDa
 const WithdrawalRequest = lazy(() => import('./screens/professional/WithdrawalRequest'))
 const ReviewsManagement = lazy(() => import('./screens/professional/ReviewsManagement'))
 const ProfessionalSettings = lazy(() => import('./screens/professional/ProfessionalSettings'))
+const ProfessionalAvailability = lazy(() => import('./screens/professional/ProfessionalAvailability'))
+const ProfessionalInbox = lazy(() => import('./screens/professional/ProfessionalInbox'))
+const PermissionsOnboarding = lazy(() => import('./screens/onboarding/PermissionsOnboarding'))
 
 const routerFutureFlags: FutureConfig = {
   v7_startTransition: true,
@@ -83,6 +87,7 @@ function App() {
         <Route path="/signup/professional" element={<ProfessionalSignUp />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/password-recovery" element={<PasswordRecoveryScreen />} />
+        <Route path="/onboarding/permissions" element={<ProtectedRoute><PermissionsOnboarding /></ProtectedRoute>} />
         
         {/* Client Screens (protégé) */}
         <Route path="/client/home" element={<ProtectedRoute><ClientHomeFeed /></ProtectedRoute>} />
@@ -109,17 +114,17 @@ function App() {
         <Route path="/social/groups" element={<ProtectedRoute><GroupsDiscovery /></ProtectedRoute>} />
         <Route path="/social/group/:id" element={<ProtectedRoute><GroupPage /></ProtectedRoute>} />
         
-        {/* Services */}
-        <Route path="/services" element={<ServicesSearch />} />
-        <Route path="/services/filters" element={<AdvancedFilters />} />
-        <Route path="/services/results" element={<SearchResults />} />
-        <Route path="/services/map" element={<MapView />} />
-        <Route path="/services/professional/:id" element={<ProfessionalProfile />} />
-        <Route path="/services/detail/:id" element={<ServiceDetail />} />
-        <Route path="/services/select" element={<ServiceSelection />} />
-        <Route path="/services/booking" element={<BookingCalendar />} />
-        <Route path="/services/payment" element={<PaymentMethod />} />
-        <Route path="/services/payment/confirmation" element={<PaymentConfirmation />} />
+        {/* Services (connexion + onboarding permissions avant accès) */}
+        <Route path="/services" element={<ProtectedRoute><ServicesSearch /></ProtectedRoute>} />
+        <Route path="/services/filters" element={<ProtectedRoute><AdvancedFilters /></ProtectedRoute>} />
+        <Route path="/services/results" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
+        <Route path="/services/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
+        <Route path="/services/professional/:id" element={<ProtectedRoute><ProfessionalProfile /></ProtectedRoute>} />
+        <Route path="/services/detail/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
+        <Route path="/services/select" element={<ProtectedRoute><ServiceSelection /></ProtectedRoute>} />
+        <Route path="/services/booking" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
+        <Route path="/services/payment" element={<ProtectedRoute><PaymentMethod /></ProtectedRoute>} />
+        <Route path="/services/payment/confirmation" element={<ProtectedRoute><PaymentConfirmation /></ProtectedRoute>} />
         
         {/* Bookings (protégé) */}
         <Route path="/bookings" element={<ProtectedRoute><MyBookingsList /></ProtectedRoute>} />
@@ -144,6 +149,7 @@ function App() {
         {/* Professional (protégé) */}
         <Route path="/professional/dashboard" element={<ProtectedRoute><ProfessionalDashboard /></ProtectedRoute>} />
         <Route path="/professional/profile" element={<ProtectedRoute><ProfessionalProfileScreen /></ProtectedRoute>} />
+        <Route path="/professional/profile/edit" element={<ProtectedRoute><EditProfessionalProfile /></ProtectedRoute>} />
         <Route path="/professional/services" element={<ProtectedRoute><ManageServices /></ProtectedRoute>} />
         <Route path="/professional/services/create" element={<ProtectedRoute><CreateEditService /></ProtectedRoute>} />
         <Route path="/professional/calendar" element={<ProtectedRoute><CalendarManagement /></ProtectedRoute>} />
@@ -153,6 +159,13 @@ function App() {
         <Route path="/professional/finances/withdraw" element={<ProtectedRoute><WithdrawalRequest /></ProtectedRoute>} />
         <Route path="/professional/reviews" element={<ProtectedRoute><ReviewsManagement /></ProtectedRoute>} />
         <Route path="/professional/settings" element={<ProtectedRoute><ProfessionalSettings /></ProtectedRoute>} />
+        <Route path="/professional/availability" element={<ProtectedRoute><ProfessionalAvailability /></ProtectedRoute>} />
+        <Route path="/professional/inbox" element={<ProtectedRoute><ProfessionalInbox /></ProtectedRoute>} />
+        <Route path="/professional/messages/new" element={<ProtectedRoute><NewConversation /></ProtectedRoute>} />
+        <Route path="/professional/messages/group/new" element={<ProtectedRoute><NewGroupConversation /></ProtectedRoute>} />
+        <Route path="/professional/messages/chat/:id" element={<ProtectedRoute><IndividualChat /></ProtectedRoute>} />
+        <Route path="/professional/messages/group/:id" element={<ProtectedRoute><GroupChat /></ProtectedRoute>} />
+        <Route path="/professional/messages/group/:id/info" element={<ProtectedRoute><GroupInfo /></ProtectedRoute>} />
         </Routes>
       </Suspense>
     </Router>

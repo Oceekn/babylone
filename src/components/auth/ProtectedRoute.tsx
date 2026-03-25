@@ -1,5 +1,6 @@
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { authService } from '../../services/auth.service'
+import { isOnboardingComplete } from '../../utils/onboarding'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -12,6 +13,14 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate()
   const location = useLocation()
+
+  if (
+    authService.isAuthenticated() &&
+    !isOnboardingComplete() &&
+    location.pathname !== '/onboarding/permissions'
+  ) {
+    return <Navigate to="/onboarding/permissions" replace state={{ from: location }} />
+  }
 
   if (!authService.isAuthenticated()) {
     return (

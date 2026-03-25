@@ -1,16 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import { Send, Loader, Info } from 'lucide-react'
 import { chatService, Message } from '../../services/chat.service'
 import { chatSocketService } from '../../services/chat-socket.service'
 import { authService } from '../../services/auth.service'
+import { formatChatMessageTime } from '../../utils/chatTime'
+import { getMessagesBasePath, isProfessionalMessagesPath } from '../../utils/professionalMessages'
 import './GroupChat.css'
 
 const isValidUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
 
 const GroupChat = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const messagesBase = getMessagesBasePath(location.pathname)
   const { id } = useParams()
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
@@ -20,7 +24,7 @@ const GroupChat = () => {
   const [memberCount, setMemberCount] = useState(0)
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const currentUserId = authService.getUserFromToken()?.sub
+  const currentUserId = authService.getCurrentUserId()
 
   useEffect(() => {
     if (!id || !isValidUUID(id)) {
@@ -99,9 +103,15 @@ const GroupChat = () => {
     <ScreenLayout
       title={groupName}
       showBack
+      showBottomNav={isProfessionalMessagesPath(location.pathname)}
       rightAction={
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <Info size={22} onClick={() => navigate(`/messages/group/${id}/info`)} style={{ cursor: 'pointer' }} />
+          <Info
+            size={22}
+            onClick={() => navigate(`${messagesBase}/group/${id}/info`)}
+            style={{ cursor: 'pointer' }}
+            aria-label="Informations du groupe"
+          />
         </div>
       }
     >
@@ -109,6 +119,9 @@ const GroupChat = () => {
         <div className="group-info-bar">
           <span>{memberCount} membres</span>
         </div>
+        <p style={{ fontSize: 12, color: '#666', padding: '0 12px 8px', margin: 0 }}>
+          Les groupes font partie du MVP : horaires des messages et liste des conversations sont alignés sur votre fuseau. D’autres options (mentions, sondages…) viendront plus tard.
+        </p>
 
         {error ? (
           <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
@@ -128,13 +141,20 @@ const GroupChat = () => {
                 {msg.user_id !== currentUserId && (
                   <span className="message-sender">{getSenderName(msg)}</span>
                 )}
+                {msg.content && <p className="message-text">{msg.content}</p>}
                 {msg.metadata?.from_story && (
-                  <span className="message-from-story">À partir d&apos;une story</span>
+                  <button
+                    type="button"
+                    className="message-from-story message-from-story-btn"
+                    onClick={() => {
+                      const sid = msg.metadata?.story_id as string | undefined
+                      if (sid) navigate(`/social/story/${sid}`)
+                    }}
+                  >
+                    {msg.metadata?.story_id ? 'À partir d\'une story — voir' : 'À partir d\'une story'}
+                  </button>
                 )}
-                <p className="message-text">{msg.content}</p>
-                <span className="message-time">
-                  {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                </span>
+                <span className="message-time">{formatChatMessageTime(msg.created_at)}</span>
               </div>
             ))}
             <div ref={messagesEndRef} />

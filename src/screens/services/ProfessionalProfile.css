@@ -243,6 +243,101 @@
   line-height: 1.4;
 }
 
+.realization-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.realization-feed-status {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--dark-grey);
+  font-size: 14px;
+}
+
+.realization-feed-status p {
+  margin: 0 0 8px;
+}
+
+.realization-feed-hint {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.realization-feed-error {
+  color: #c62828;
+}
+
+.realization-post-card {
+  background: var(--white);
+  border: 1px solid var(--border-grey);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.realization-post-media {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  display: block;
+  background: var(--grey);
+}
+
+.realization-post-body {
+  padding: 12px 14px 14px;
+}
+
+.realization-post-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.realization-post-author {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-dark);
+}
+
+.realization-post-time {
+  font-size: 12px;
+  color: var(--dark-grey);
+  flex-shrink: 0;
+}
+
+.realization-post-text {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-dark);
+}
+
+.realization-post-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.realization-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 14px;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.realization-action-btn span {
+  min-width: 1ch;
+}
+
 .reviews-section {
   display: flex;
   flex-direction: column;

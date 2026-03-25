@@ -4,11 +4,16 @@ import { Repository, DataSource, Not } from 'typeorm';
 import { Conversation, ConversationType } from './entities/conversation.entity';
 import { ConversationParticipant } from './entities/conversation-participant.entity';
 import { Message, MessageType } from './entities/message.entity';
+import { UsersService } from '../users/users.service';
+import { SocialService } from '../social/social.service';
+import { User } from '../users/entities/user.entity';
 
 export interface ConversationWithDetails extends Conversation {
   last_message?: string | null;
   last_message_sender_name?: string | null;
   unread_count: number;
+  /** Conversation individuelle : id de l’autre participant (pour filtres groupe côté client) */
+  other_user_id?: string | null;
 }
 
 @Injectable()
@@ -21,7 +26,67 @@ export class ChatService {
     @InjectRepository(Message)
     private messagesRepository: Repository<Message>,
     private dataSource: DataSource,
+    private usersService: UsersService,
+    private socialService: SocialService,
   ) {}
+
+  private normalizeDmRule(rule: string | undefined): 'contacts_or_follow' | 'followers' | 'mutual' | 'none' {
+    if (!rule || rule === 'everyone') return 'contacts_or_follow';
+    if (rule === 'contacts_or_follow' || rule === 'followers' || rule === 'mutual' || rule === 'none') {
+      return rule;
+    }
+    return 'contacts_or_follow';
+  }
+
+  /** Existe-t-il une conversation individuelle entre A et B ? */
+  async hasIndividualConversation(userA: string, userB: string): Promise<boolean> {
+    const existing = await this.conversationsRepository
+      .createQueryBuilder('conversation')
+      .innerJoin(ConversationParticipant, 'p1', 'p1.conversation_id = conversation.id')
+      .innerJoin(ConversationParticipant, 'p2', 'p2.conversation_id = conversation.id')
+      .where('p1.user_id = :a', { a: userA })
+      .andWhere('p2.user_id = :b', { b: userB })
+      .andWhere('conversation.type = :type', { type: ConversationType.INDIVIDUAL })
+      .getOne();
+    return !!existing;
+  }
+
+  /**
+   * Nouvelle conversation : selon privacy_dm_from du destinataire.
+   * - contacts_or_follow (défaut) : l’initiateur suit le destinataire OU le numéro Babylone du destinataire
+   *   figure dans les contacts importés par l’initiateur (répertoire téléphone).
+   * - followers : uniquement si l’initiateur suit le destinataire (abonné au compte).
+   * - mutual : abonnement mutuel.
+   */
+  private async assertDirectMessageAllowed(initiatorId: string, recipientId: string): Promise<void> {
+    const recipient: User = await this.usersService.findById(recipientId);
+    const rule = this.normalizeDmRule(recipient.privacy_dm_from as string);
+
+    if (rule === 'none') {
+      throw new ForbiddenException('DM_PRIVACY_BLOCKED');
+    }
+
+    if (rule === 'mutual') {
+      const ok = await this.socialService.isMutual(initiatorId, recipientId);
+      if (!ok) throw new ForbiddenException('DM_PRIVACY_BLOCKED');
+      return;
+    }
+
+    if (rule === 'followers') {
+      const ok = await this.socialService.isFollowing(initiatorId, recipientId);
+      if (!ok) throw new ForbiddenException('DM_PRIVACY_BLOCKED');
+      return;
+    }
+
+    // contacts_or_follow
+    const following = await this.socialService.isFollowing(initiatorId, recipientId);
+    if (following) return;
+
+    const inContacts = await this.usersService.hasContactPhoneForUser(initiatorId, recipient.telephone);
+    if (inContacts) return;
+
+    throw new ForbiddenException('DM_PRIVACY_BLOCKED');
+  }
 
   // Créer une conversation individuelle
   async createIndividualConversation(userId1: string, userId2: string): Promise<Conversation> {
@@ -45,6 +110,8 @@ export class ChatService {
     if (existing) {
       return existing;
     }
+
+    await this.assertDirectMessageAllowed(userId1, userId2);
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -84,6 +151,18 @@ export class ChatService {
     participantIds: string[],
   ): Promise<Conversation> {
     const ids = Array.isArray(participantIds) ? participantIds.filter((id) => id && id !== userId) : [];
+
+    for (const pid of ids) {
+      const participant = await this.usersService.findById(pid);
+      if (participant.privacy_group_invite === 'none') {
+        throw new ForbiddenException('GROUP_INVITE_BLOCKED');
+      }
+      const hasPrior = await this.hasIndividualConversation(userId, pid);
+      if (!hasPrior) {
+        throw new ForbiddenException('GROUP_REQUIRES_PRIOR_CHAT');
+      }
+    }
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -144,12 +223,14 @@ export class ChatService {
         ]);
         let displayName = c.name ?? null;
         let otherUser: { first_name?: string; last_name?: string; telephone?: string; avatar_url?: string } | null = null;
+        let otherUserId: string | null = null;
         if (c.type === ConversationType.INDIVIDUAL) {
           const other = await this.participantsRepository.findOne({
             where: { conversation_id: c.id, user_id: Not(userId) },
             relations: ['user'],
           });
           otherUser = other?.user ?? null;
+          otherUserId = other?.user_id ?? null;
           if (!displayName && otherUser) {
             displayName = `${otherUser.first_name || ''} ${otherUser.last_name || ''}`.trim() || otherUser.telephone || 'Inconnu';
           }
@@ -166,6 +247,7 @@ export class ChatService {
           last_message: lastMsg?.content ?? null,
           last_message_sender_name: senderName ?? null,
           unread_count: myParticipant?.unread_count ?? 0,
+          other_user_id: otherUserId,
         } as ConversationWithDetails;
       }),
     );

@@ -121,6 +121,7 @@ export class ProfessionalsController {
         coordinates: [updateDto.position.longitude, updateDto.position.latitude],
       };
     }
+    delete updateData.position;
 
     return this.professionalsService.update(id, updateData);
   }

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
-import { Eye, X, MessageCircle, Loader } from 'lucide-react'
+import { Eye, X, MessageCircle, Loader, Smile } from 'lucide-react'
 import { api } from '../../services/api'
 import { authService } from '../../services/auth.service'
 import { chatService } from '../../services/chat.service'
+import { DM_PRIVACY_BLOCKED_MESSAGE_FR, isDmPrivacyBlocked } from '../../utils/chatPrivacy'
 import { formatTimeAgo } from '../../utils/date'
 import './StoryViewer.css'
 
@@ -15,7 +16,8 @@ interface Story {
   user_id: string
   media_url?: string
   text?: string
-  views_count: number
+  /** Présent seulement pour l'auteur (masqué pour les spectateurs) */
+  views_count?: number
   expires_at: string
   created_at: string
   user?: {
@@ -71,10 +73,25 @@ const StoryViewer = () => {
   const [replyText, setReplyText] = useState('')
   const [replySending, setReplySending] = useState(false)
   const [replySent, setReplySent] = useState(false)
+  const [replyPrivacyError, setReplyPrivacyError] = useState<string | null>(null)
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
+  const [replyInputFocused, setReplyInputFocused] = useState(false)
+  const [reactionError, setReactionError] = useState<string | null>(null)
+  const [reactionSentFlash, setReactionSentFlash] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const loadStories = useCallback(async () => {
+    const fetchSingleStory = async (storyId: string) => {
+      try {
+        const one = await api.get<Story>(`/social/stories/${storyId}`)
+        addViewedId(storyId)
+        return one
+      } catch {
+        return null
+      }
+    }
+
     try {
       setLoading(true)
       const data = await api.get<Story[]>('/social/stories')
@@ -88,17 +105,33 @@ const StoryViewer = () => {
           setStories(oneUserStories)
           const idx = oneUserStories.findIndex((s: Story) => s.id === id)
           if (idx >= 0) setCurrentIndex(idx)
-          try { await api.get(`/social/stories/${id}`); addViewedId(id) } catch {}
+          try {
+            await api.get(`/social/stories/${id}`)
+            addViewedId(id)
+          } catch {}
         } else {
-          setStories(storiesArray)
-          const idx = storiesArray.findIndex((s: Story) => s.id === id)
-          if (idx >= 0) setCurrentIndex(idx)
+          const one = await fetchSingleStory(id)
+          if (one) {
+            setStories([one])
+            setCurrentIndex(0)
+          } else {
+            setStories([])
+          }
         }
       } else {
         setStories(storiesArray)
       }
     } catch (err) {
       console.error('Erreur stories:', err)
+      if (id) {
+        const one = await fetchSingleStory(id)
+        if (one) {
+          setStories([one])
+          setCurrentIndex(0)
+        } else {
+          setStories([])
+        }
+      }
     } finally {
       setLoading(false)
     }
@@ -119,8 +152,8 @@ const StoryViewer = () => {
 
   const currentStory = stories[currentIndex]
   const isVideo = currentStory?.media_url?.match(/\.(mp4|webm|ogg)$/i) || false
-  const currentUserId = authService.getUserFromToken()?.sub
-  const isMyStory = !!currentStory && currentStory.user_id === currentUserId
+  const currentUserId = authService.getCurrentUserId()
+  const isMyStory = !!currentStory && !!currentUserId && currentStory.user_id === currentUserId
 
   const markViewedAndNext = useCallback(() => {
     if (!currentStory) return
@@ -225,6 +258,7 @@ const StoryViewer = () => {
     if (!authorId || !text || replySending) return
     try {
       setReplySending(true)
+      setReplyPrivacyError(null)
       const conv = await chatService.createIndividualConversation(authorId)
       await chatService.sendMessageRest(conv.id, text, {
         from_story: true,
@@ -235,6 +269,9 @@ const StoryViewer = () => {
       setTimeout(() => setReplySent(false), 2000)
     } catch (err) {
       console.error('Erreur envoi réponse story:', err)
+      if (isDmPrivacyBlocked(err)) {
+        setReplyPrivacyError(DM_PRIVACY_BLOCKED_MESSAGE_FR)
+      }
     } finally {
       setReplySending(false)
     }
@@ -254,9 +291,19 @@ const StoryViewer = () => {
     }
   }, [currentStory?.id, isMyStory])
 
-  const handleReaction = (emoji: string) => {
+  const showQuickReactions = replyInputFocused || showReactionPicker
+
+  const handleReaction = async (emoji: string) => {
     if (!currentStory?.id) return
-    api.post(`/social/stories/${currentStory.id}/reaction`, { emoji }).catch(() => {})
+    setReactionError(null)
+    try {
+      await api.post(`/social/stories/${currentStory.id}/reaction`, { emoji: emoji.trim() })
+      setShowReactionPicker(false)
+      setReactionSentFlash(true)
+      setTimeout(() => setReactionSentFlash(false), 2000)
+    } catch {
+      setReactionError('Réaction non envoyée. Réessayez.')
+    }
   }
 
   if (loading) {
@@ -317,76 +364,121 @@ const StoryViewer = () => {
           </button>
         </div>
 
-        <div
-          className="story-tap-zone"
-          onClick={handleTap}
-          onMouseDown={() => setPaused(true)}
-          onMouseUp={() => setPaused(false)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          {currentStory.media_url ? (
-            isVideo ? (
-              <video
-                ref={videoRef}
-                src={currentStory.media_url}
-                className="story-media story-video"
-                playsInline
-                muted={false}
-              />
+        <div className="story-body">
+          <div
+            className="story-tap-zone"
+            onClick={handleTap}
+            onMouseDown={() => setPaused(true)}
+            onMouseUp={() => setPaused(false)}
+            onMouseLeave={() => setPaused(false)}
+          >
+            {currentStory.media_url ? (
+              isVideo ? (
+                <video
+                  ref={videoRef}
+                  src={currentStory.media_url}
+                  className="story-media story-video"
+                  playsInline
+                  muted={false}
+                />
+              ) : (
+                <img src={currentStory.media_url} alt="" className="story-media" />
+              )
             ) : (
-              <img src={currentStory.media_url} alt="" className="story-media" />
-            )
-          ) : (
-            <div className="story-text-content">
-              <p>{currentStory.text}</p>
-            </div>
-          )}
+              <div className="story-text-content">
+                <p>{currentStory.text}</p>
+              </div>
+            )}
+          </div>
           {currentStory.text && currentStory.media_url && (
-            <div className="story-overlay-text">
-              <p>{currentStory.text}</p>
+            <div className="story-caption-bar">
+              <p className="story-caption-text">{currentStory.text}</p>
             </div>
           )}
         </div>
 
         <div className="story-footer">
-          <div className="story-reactions">
-            {['❤️', '🔥', '😂'].map((emoji) => (
-              <button key={emoji} type="button" className="story-reaction-btn" onClick={() => handleReaction(emoji)}>{emoji}</button>
-            ))}
-          </div>
           {!isMyStory && (
             <form className="story-reply-row" onSubmit={handleReplySubmit}>
-              <input
-                type="text"
-                className="story-reply-input"
-                placeholder="Répondre en message privé..."
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onFocus={() => setPaused(true)}
-                onBlur={() => setPaused(false)}
-                onClick={(e) => e.stopPropagation()}
-                disabled={replySending}
-                maxLength={500}
-              />
-              <button
-                type="submit"
-                className="story-reply-btn"
-                disabled={replySending || !replyText.trim()}
-                onClick={(e) => e.stopPropagation()}
-                aria-label="Envoyer"
-              >
-                {replySent ? <span className="story-reply-sent">Envoyé</span> : <MessageCircle size={22} />}
-              </button>
+              {replyPrivacyError && (
+                <p className="story-reply-privacy-error">{replyPrivacyError}</p>
+              )}
+              {reactionError && (
+                <p className="story-reply-privacy-error" role="alert">{reactionError}</p>
+              )}
+              {reactionSentFlash && (
+                <p className="story-reaction-sent-ok">Réaction envoyée</p>
+              )}
+              {showQuickReactions && (
+                <div className="story-reactions story-reactions-popover" role="group" aria-label="Réactions rapides">
+                  {['❤️', '🔥', '😂'].map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      className="story-reaction-btn"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        void handleReaction(emoji)
+                      }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="story-reply-input-row">
+                <button
+                  type="button"
+                  className="story-emoji-toggle"
+                  aria-label="Réactions (ou ouvrez le clavier)"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowReactionPicker((v) => !v)
+                  }}
+                >
+                  <Smile size={22} />
+                </button>
+                <input
+                  type="text"
+                  className="story-reply-input"
+                  placeholder="Répondre en message privé..."
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  onFocus={() => {
+                    setPaused(true)
+                    setReplyInputFocused(true)
+                  }}
+                  onBlur={() => {
+                    setPaused(false)
+                    window.setTimeout(() => setReplyInputFocused(false), 200)
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  disabled={replySending}
+                  maxLength={500}
+                />
+                <button
+                  type="submit"
+                  className="story-reply-btn"
+                  disabled={replySending || !replyText.trim()}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Envoyer"
+                >
+                  {replySent ? <span className="story-reply-sent">Envoyé</span> : <MessageCircle size={22} />}
+                </button>
+              </div>
             </form>
           )}
-          <div
-            className={`story-views ${isMyStory ? 'story-views-clickable' : ''}`}
-            role={isMyStory ? 'button' : undefined}
-            onClick={isMyStory ? openViewersModal : undefined}
-          >
-            <Eye size={16} />
-            <span>{currentStory.views_count} vues</span>
-          </div>
+          {isMyStory && (
+            <div
+              className="story-views story-views-clickable"
+              role="button"
+              onClick={openViewersModal}
+            >
+              <Eye size={16} />
+              <span>{currentStory.views_count ?? 0} vues</span>
+            </div>
+          )}
         </div>
       </div>
 

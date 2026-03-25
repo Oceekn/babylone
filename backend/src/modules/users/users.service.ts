@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole, AccountStatus } from './entities/user.entity';
+import { UserContactPhone } from './entities/user-contact-phone.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -9,7 +10,49 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(UserContactPhone)
+    private contactPhonesRepository: Repository<UserContactPhone>,
   ) {}
+
+  /** Normalise vers E.164 (+237...) pour le Cameroun par défaut */
+  normalizePhoneE164(raw: string): string | null {
+    if (!raw || typeof raw !== 'string') return null;
+    let s = raw.trim().replace(/[\s\-.]/g, '');
+    if (!s) return null;
+    if (s.startsWith('+')) return s.length >= 10 ? s : null;
+    if (s.startsWith('00')) s = '+' + s.slice(2);
+    if (s.startsWith('237')) return '+' + s;
+    if (/^\d{9}$/.test(s)) return '+237' + s;
+    if (/^6\d{8}$/.test(s)) return '+237' + s;
+    if (/^0\d{9}$/.test(s)) return '+237' + s.replace(/^0/, '');
+    return s.startsWith('+') ? s : null;
+  }
+
+  /** Le numéro Babylone du destinataire est-il dans le répertoire importé par l’initiateur ? */
+  async hasContactPhoneForUser(initiatorUserId: string, recipientTelephone: string): Promise<boolean> {
+    const norm = this.normalizePhoneE164(recipientTelephone);
+    if (!norm) return false;
+    const row = await this.contactPhonesRepository.findOne({
+      where: { user_id: initiatorUserId, phone_e164: norm },
+    });
+    return !!row;
+  }
+
+  /** Remplace les contacts importés par l’utilisateur (répertoire téléphone). */
+  async syncContactPhones(userId: string, rawPhones: string[]): Promise<{ saved: number }> {
+    const set = new Set<string>();
+    for (const raw of rawPhones || []) {
+      const n = this.normalizePhoneE164(String(raw));
+      if (n) set.add(n);
+    }
+    await this.contactPhonesRepository.delete({ user_id: userId });
+    const phones = [...set].slice(0, 5000);
+    if (phones.length === 0) return { saved: 0 };
+    await this.contactPhonesRepository.insert(
+      phones.map((phone_e164) => ({ user_id: userId, phone_e164 })),
+    );
+    return { saved: phones.length };
+  }
 
   async create(userData: Partial<User>): Promise<User> {
     // Si password est fourni au lieu de password_hash, le hasher
@@ -42,6 +85,12 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user;
+  }
+
+  /** Réponse API sans mot de passe */
+  toSafeUser(user: User): Omit<User, 'password_hash'> {
+    const { password_hash: _password, ...safe } = user;
+    return safe;
   }
 
   async update(id: string, updateData: Partial<User>): Promise<User> {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { Star, Loader, MessageCircle } from 'lucide-react'
 import { bookingsService, Booking } from '../../services/bookings.service'
 import './ReviewsManagement.css'
@@ -45,7 +46,7 @@ const ReviewsManagement = () => {
   const hasRating = avgRating > 0
 
   return (
-    <ScreenLayout title="Avis" showBack showBottomNav>
+    <ScreenLayout title="Avis" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="reviews-management">
         {loading ? (
           <div className="reviews-loading">

@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Calendar, Briefcase, DollarSign, User } from 'lucide-react'
+import { bookingsService } from '../../services/bookings.service'
 import './BottomNavigation.css'
 
 interface ProfessionalBottomNavigationProps {
@@ -9,6 +11,7 @@ interface ProfessionalBottomNavigationProps {
 const ProfessionalBottomNavigation = ({ activeTab }: ProfessionalBottomNavigationProps) => {
   const navigate = useNavigate()
   const location = useLocation()
+  const [bookingsBadge, setBookingsBadge] = useState(0)
 
   const getActiveTab = () => {
     if (activeTab) return activeTab
@@ -23,6 +26,32 @@ const ProfessionalBottomNavigation = ({ activeTab }: ProfessionalBottomNavigatio
 
   const currentTab = getActiveTab()
 
+  useEffect(() => {
+    let cancelled = false
+    const loadBadge = async () => {
+      try {
+        const r = await bookingsService.getProNavBadge()
+        if (!cancelled) setBookingsBadge(typeof r.badge === 'number' && r.badge > 0 ? r.badge : 0)
+      } catch {
+        if (!cancelled) setBookingsBadge(0)
+      }
+    }
+    loadBadge()
+    const onFocus = () => loadBadge()
+    window.addEventListener('focus', onFocus)
+    const onVis = () => {
+      if (document.visibilityState === 'visible') loadBadge()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    const interval = window.setInterval(loadBadge, 90_000)
+    return () => {
+      cancelled = true
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVis)
+      window.clearInterval(interval)
+    }
+  }, [location.pathname])
+
   return (
     <nav className="bottom-navigation professional-bottom-nav">
       <button
@@ -33,10 +62,19 @@ const ProfessionalBottomNavigation = ({ activeTab }: ProfessionalBottomNavigatio
         <span>Dashboard</span>
       </button>
       <button
-        className={`nav-item ${currentTab === 'bookings' ? 'active' : ''}`}
+        type="button"
+        className={`nav-item nav-item--with-badge ${currentTab === 'bookings' ? 'active' : ''}`}
         onClick={() => navigate('/professional/bookings')}
+        aria-label={bookingsBadge > 0 ? `Réservations, ${bookingsBadge} éléments à voir` : 'Réservations'}
       >
-        <Calendar size={24} fill={currentTab === 'bookings' ? '#000000' : 'none'} />
+        <span className="nav-item-icon-wrap">
+          <Calendar size={24} fill={currentTab === 'bookings' ? '#000000' : 'none'} />
+          {bookingsBadge > 0 && (
+            <span className="pro-nav-badge" aria-hidden>
+              {bookingsBadge > 99 ? '99+' : bookingsBadge}
+            </span>
+          )}
+        </span>
         <span>Réservations</span>
       </button>
       <button

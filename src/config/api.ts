@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/users/${id}`,
     UPDATE_ME: '/users/me',
     SEARCH: '/users/search',
+    SYNC_CONTACTS: '/users/me/contacts',
   },
   
   // Professionals

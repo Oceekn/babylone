@@ -19,6 +19,10 @@ export interface Professional {
   rating: number;
   total_reviews: number;
   is_active: boolean;
+  /** Plage horaire pour les créneaux réservables (0–23), défaut 8h */
+  work_start_hour?: number;
+  /** Heure de fin (excluse du dernier créneau), défaut 19h */
+  work_end_hour?: number;
   created_at?: string;
   user?: {
     id: string;
@@ -29,6 +33,13 @@ export interface Professional {
     avatar_url?: string;
   };
 }
+
+/** Corps attendu par PUT /professionals/:id (le backend mappe `position` → `position_gps`) */
+export type UpdateProfessionalPayload = Partial<
+  Omit<Professional, 'position_gps' | 'user' | 'id' | 'user_id' | 'rating' | 'total_reviews' | 'is_verified' | 'is_active' | 'created_at'>
+> & {
+  position?: { latitude: number; longitude: number };
+};
 
 export interface SearchProfessionalsParams {
   latitude: number;
@@ -75,7 +86,7 @@ class ProfessionalsService {
   }
 
   // Mettre à jour un profil professionnel
-  async update(id: string, data: Partial<Professional>): Promise<Professional> {
+  async update(id: string, data: UpdateProfessionalPayload): Promise<Professional> {
     return api.put<Professional>(API_ENDPOINTS.PROFESSIONALS.UPDATE(id), data);
   }
 

@@ -11,7 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { MessageType } from './entities/message.entity';
+import { Message, MessageType } from './entities/message.entity';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
@@ -27,6 +27,35 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   server: Server;
 
   private logger: Logger = new Logger('ChatGateway');
+
+  /** JSON stable pour le client (dates en ISO UTC, évite les bugs d’affichage « à l’instant ») */
+  private toWireMessage(message: Message): Record<string, unknown> {
+    const iso = (d: Date | string | undefined | null) =>
+      d instanceof Date ? d.toISOString() : d ?? null;
+    return {
+      id: message.id,
+      conversation_id: message.conversation_id,
+      user_id: message.user_id,
+      type: message.type,
+      content: message.content,
+      media_url: message.media_url,
+      is_read: message.is_read,
+      read_at: iso(message.read_at as Date | string | undefined),
+      reply_to_id: message.reply_to_id,
+      metadata: message.metadata,
+      created_at: iso(message.created_at as Date | string | undefined),
+      updated_at: iso(message.updated_at as Date | string | undefined),
+      user: message.user
+        ? {
+            id: message.user.id,
+            first_name: message.user.first_name,
+            last_name: message.user.last_name,
+            avatar_url: message.user.avatar_url,
+            telephone: message.user.telephone,
+          }
+        : undefined,
+    };
+  }
 
   constructor(
     private chatService: ChatService,
@@ -128,12 +157,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       });
 
       // Émettre le message à tous les participants de la conversation
-      this.server.to(`conversation:${data.conversationId}`).emit('new_message', message);
+      this.server
+        .to(`conversation:${data.conversationId}`)
+        .emit('new_message', this.toWireMessage(message));
 
       // Mettre à jour les compteurs de non lus
       await this.chatService.updateUnreadCounts(data.conversationId, userId);
 
-      return { success: true, message };
+      return { success: true, message: this.toWireMessage(message) };
     } catch (error) {
       this.logger.error(`Send message error: ${error.message}`);
       return { error: error.message };

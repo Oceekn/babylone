@@ -140,6 +140,91 @@
   margin: 0;
 }
 
+.privacy-intro {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dark-grey);
+  padding: 0 4px;
+  margin: 0 0 8px 0;
+}
 
+.privacy-settings .setting-item {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
 
+.privacy-settings .setting-select {
+  width: 100%;
+  max-width: 100%;
+}
+
+.privacy-hint-box {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--dark-grey);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.privacy-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.privacy-saved-toast {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2e7d32;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.privacy-contacts-textarea {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid var(--border-grey, #ddd);
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.privacy-sync-msg {
+  font-size: 13px;
+  color: var(--dark-grey, #555);
+  margin: 8px 0 0;
+}
+
+.privacy-contacts-sync.setting-item {
+  align-items: stretch;
+}
 

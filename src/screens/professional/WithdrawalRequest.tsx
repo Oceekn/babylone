@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { walletService } from '../../services/wallet.service'
@@ -64,7 +65,7 @@ const WithdrawalRequest = () => {
 
   if (success) {
     return (
-      <ScreenLayout title="Retrait" showBack showBottomNav>
+      <ScreenLayout title="Retrait" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
         <div className="withdrawal-request">
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <h2>Demande envoyee</h2>
@@ -82,7 +83,7 @@ const WithdrawalRequest = () => {
   }
 
   return (
-    <ScreenLayout title="Demande de retrait" showBack showBottomNav>
+    <ScreenLayout title="Demande de retrait" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="withdrawal-request">
         <div className="available-balance">
           <p className="balance-label">Solde disponible</p>

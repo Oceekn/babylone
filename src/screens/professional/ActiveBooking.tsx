@@ -5,6 +5,7 @@ import Button from '../../components/common/Button'
 import { MapPin, Phone, MessageCircle, Clock, Loader } from 'lucide-react'
 import { bookingsService, Booking } from '../../services/bookings.service'
 import { chatService } from '../../services/chat.service'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import './ActiveBooking.css'
 
 const statusLabels: Record<string, string> = {
@@ -68,7 +69,7 @@ const ActiveBooking = () => {
 
   if (loading) {
     return (
-      <ScreenLayout title="Reservation" showBack showBottomNav>
+      <ScreenLayout title="Reservation" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
         <div className="active-booking-loading">
           <Loader size={32} className="spin" />
         </div>
@@ -78,7 +79,7 @@ const ActiveBooking = () => {
 
   if (error || !booking) {
     return (
-      <ScreenLayout title="Reservation" showBack showBottomNav>
+      <ScreenLayout title="Reservation" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
         <div className="active-booking-error">
           <p>{error || 'Reservation introuvable'}</p>
           <Button variant="outline" onClick={() => navigate('/professional/bookings')}>Retour</Button>
@@ -88,7 +89,7 @@ const ActiveBooking = () => {
   }
 
   return (
-    <ScreenLayout title="Reservation active" showBack showBottomNav>
+    <ScreenLayout title="Reservation active" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="active-booking">
         <div className={`status-badge ${booking.status}`}>
           {statusLabels[booking.status] || booking.status}
@@ -229,9 +230,9 @@ const ActiveBooking = () => {
             if (!booking?.client_id) return
             try {
               const conversation = await chatService.createIndividualConversation(booking.client_id)
-              navigate(`/messages/chat/${conversation.id}`)
+              navigate(`/professional/messages/chat/${conversation.id}`)
             } catch {
-              navigate('/messages')
+              navigate('/professional/inbox')
             }
           }}>
             <MessageCircle size={20} aria-hidden /> Message

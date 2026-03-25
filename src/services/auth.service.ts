@@ -126,19 +126,48 @@ class AuthService {
     return response;
   }
 
+  /**
+   * Décode le segment JWT (base64url, pas base64 standard — atob seul provoquait des erreurs).
+   */
+  private decodeJwtPayloadSegment(segment: string): Record<string, unknown> | null {
+    try {
+      const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
+      const pad = base64.length % 4;
+      const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+      return JSON.parse(atob(padded)) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+
   // Obtenir les informations utilisateur depuis le token (décodage basique)
   getUserFromToken(): any {
     const token = this.getToken();
     if (!token) return null;
 
     try {
-      // Décoder le payload JWT (base64)
-      const payload = token.split('.')[1];
-      const decoded = JSON.parse(atob(payload));
+      const segment = token.split('.')[1];
+      if (!segment) return null;
+      const decoded = this.decodeJwtPayloadSegment(segment);
       return decoded;
     } catch (error) {
       console.error('Erreur lors du décodage du token:', error);
       return null;
+    }
+  }
+
+  /** ID utilisateur connecté (sub JWT ou id, avec repli sur localStorage) */
+  getCurrentUserId(): string | undefined {
+    const p = this.getUserFromToken() as { sub?: string; id?: string } | null;
+    if (p?.sub) return p.sub;
+    if (p?.id) return p.id;
+    try {
+      const raw = localStorage.getItem('user');
+      if (!raw) return undefined;
+      const u = JSON.parse(raw) as { id?: string };
+      return u?.id;
+    } catch {
+      return undefined;
     }
   }
 }

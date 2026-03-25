@@ -1,6 +1,9 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '../config/api';
 
+/** Aligné sur `metadata.scope === 'realization'` côté API (réalisations fiche pro). */
+export const POST_METADATA_SCOPE_REALIZATION = 'realization' as const;
+
 export interface Post {
   id: string;
   user_id: string;
@@ -12,6 +15,7 @@ export interface Post {
   comments_count: number;
   shares_count: number;
   is_public: boolean;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
   user?: {
     id: string;
@@ -61,7 +65,13 @@ class SocialService {
   }
 
   // Créer un post
-  async createPost(data: { content?: string; image_url?: string; video_url?: string; pays_code?: string }): Promise<Post> {
+  async createPost(data: {
+    content?: string;
+    image_url?: string;
+    video_url?: string;
+    pays_code?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<Post> {
     return api.post<Post>(API_ENDPOINTS.SOCIAL.CREATE_POST, {
       ...data,
       pays_code: data.pays_code || 'CM',
@@ -120,8 +130,9 @@ class SocialService {
     return api.get(API_ENDPOINTS.SOCIAL.USER_FOLLOWING(userId), { params });
   }
 
-  async getUserPosts(userId: string): Promise<Post[]> {
-    return api.get<Post[]>(API_ENDPOINTS.SOCIAL.USER_POSTS(userId));
+  async getUserPosts(userId: string, scope?: typeof POST_METADATA_SCOPE_REALIZATION): Promise<Post[]> {
+    const params = scope ? { scope } : {};
+    return api.get<Post[]>(API_ENDPOINTS.SOCIAL.USER_POSTS(userId), { params });
   }
 }
 

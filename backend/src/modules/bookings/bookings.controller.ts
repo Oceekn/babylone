@@ -37,6 +37,12 @@ export class BookingsController {
     return this.bookingsService.getProfessionalStats(req.user.id);
   }
 
+  /** Pastille « Réservations » (demandes en attente + résas du jour confirmées / en cours) */
+  @Get('pro/nav-badge')
+  async proNavBadge(@Request() req) {
+    return this.bookingsService.getProNavBadge(req.user.id);
+  }
+
   // Avis recus par le professionnel
   @Get('reviews-received')
   async reviewsReceived(@Request() req) {

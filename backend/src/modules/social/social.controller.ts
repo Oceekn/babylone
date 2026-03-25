@@ -42,7 +42,14 @@ export class SocialController {
   @Post('posts')
   @UseGuards(JwtAuthGuard)
   async createPost(
-    @Body() body: { content?: string; image_url?: string; video_url?: string; pays_code?: string },
+    @Body()
+    body: {
+      content?: string;
+      image_url?: string;
+      video_url?: string;
+      pays_code?: string;
+      metadata?: Record<string, unknown>;
+    },
     @Request() req,
   ) {
     return this.socialService.createPost({
@@ -51,6 +58,7 @@ export class SocialController {
       imageUrl: body.image_url,
       videoUrl: body.video_url,
       paysCode: body.pays_code || req.user.pays_code,
+      metadata: body.metadata,
     });
   }
 
@@ -89,8 +97,11 @@ export class SocialController {
   // Posts d'un utilisateur
   @Get('users/:userId/posts')
   @UseGuards(JwtAuthGuard)
-  async getUserPosts(@Param('userId') userId: string) {
-    return this.socialService.getPostsByUser(userId);
+  async getUserPosts(
+    @Param('userId') userId: string,
+    @Query('scope') scope?: string,
+  ) {
+    return this.socialService.getPostsByUser(userId, scope);
   }
 
   // --- FOLLOW ---
@@ -171,8 +182,8 @@ export class SocialController {
   // Feed des stories (non expirees)
   @Get('stories')
   @UseGuards(JwtAuthGuard)
-  async getStories() {
-    return this.socialService.getStoriesFeed();
+  async getStories(@Request() req) {
+    return this.socialService.getStoriesFeed(req.user.id);
   }
 
   // Mes stories (actives ou archive)
@@ -229,8 +240,8 @@ export class SocialController {
 
   @Get('highlights/:id')
   @UseGuards(JwtAuthGuard)
-  async getHighlight(@Param('id') id: string) {
-    return this.socialService.getHighlightWithStories(id);
+  async getHighlight(@Param('id') id: string, @Request() req) {
+    return this.socialService.getHighlightWithStories(id, req.user.id);
   }
 
   @Post('highlights/:id/stories')

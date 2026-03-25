@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Query, Patch, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Param, Query, Patch, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SyncContactsDto } from './dto/sync-contacts.dto';
 
 @Controller('users')
 export class UsersController {
@@ -10,13 +11,22 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Request() req) {
-    return this.usersService.findById(req.user.id);
+    const user = await this.usersService.findById(req.user.id);
+    return this.usersService.toSafeUser(user);
   }
 
   @Patch('me')
   @UseGuards(JwtAuthGuard)
   async updateMe(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(req.user.id, updateUserDto);
+    const updated = await this.usersService.update(req.user.id, updateUserDto);
+    return this.usersService.toSafeUser(updated);
+  }
+
+  /** Import répertoire (numéros normalisés) — autorise les DM « numéro connu » sans follow */
+  @Post('me/contacts')
+  @UseGuards(JwtAuthGuard)
+  async syncContacts(@Request() req, @Body() body: SyncContactsDto) {
+    return this.usersService.syncContactPhones(req.user.id, Array.isArray(body?.phones) ? body.phones : []);
   }
 
   // Rechercher des utilisateurs (pour demarrer une conversation)
@@ -32,6 +42,7 @@ export class UsersController {
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {
-    return this.usersService.findById(id);
+    const user = await this.usersService.findById(id);
+    return this.usersService.toSafeUser(user);
   }
 }

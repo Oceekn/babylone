@@ -48,7 +48,7 @@ interface Story {
 const UserProfile = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const currentUserId = authService.getUserFromToken()?.sub ?? null
+  const currentUserId = authService.getCurrentUserId() ?? null
   const isOwnProfile = id === currentUserId
 
   const [user, setUser] = useState<UserData | null>(null)

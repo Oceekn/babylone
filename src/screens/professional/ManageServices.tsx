@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import { Edit, Trash2, Plus, Briefcase, Clock, ImageIcon } from 'lucide-react'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { servicesService, Service } from '../../services/services.service'
 import './ManageServices.css'
 
@@ -52,9 +53,12 @@ const ManageServices = () => {
     <ScreenLayout
       title="Mes services"
       rightAction={
-        <button type="button" className="manage-services-header-btn" onClick={() => navigate('/professional/services/create')}>
-          <Plus size={20} strokeWidth={2.5} /> Nouveau
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <ProfessionalInboxBell />
+          <button type="button" className="manage-services-header-btn" onClick={() => navigate('/professional/services/create')}>
+            <Plus size={20} strokeWidth={2.5} /> Nouveau
+          </button>
+        </div>
       }
       showBottomNav
     >

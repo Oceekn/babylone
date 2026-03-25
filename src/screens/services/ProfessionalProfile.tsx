@@ -3,12 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import ProfilePhotoViewer from '../../components/common/ProfilePhotoViewer'
 import Button from '../../components/common/Button'
-import { Star, Calendar, MapPin, MessageCircle } from 'lucide-react'
+import { Star, Calendar, MapPin, MessageCircle, Heart, Share2 } from 'lucide-react'
 import { professionalsService, Professional } from '../../services/professionals.service'
 import { servicesService, Service } from '../../services/services.service'
 import { chatService } from '../../services/chat.service'
+import { DM_PRIVACY_BLOCKED_MESSAGE_FR, isDmPrivacyBlocked } from '../../utils/chatPrivacy'
 import { api } from '../../services/api'
 import { Booking } from '../../services/bookings.service'
+import { socialService, Post, POST_METADATA_SCOPE_REALIZATION } from '../../services/social.service'
+import { formatTimeAgo } from '../../utils/date'
 import './ProfessionalProfile.css'
 
 const ProfessionalProfile = () => {
@@ -21,6 +24,11 @@ const ProfessionalProfile = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showPhotoViewer, setShowPhotoViewer] = useState(false)
+  const [contactPrivacyError, setContactPrivacyError] = useState<string | null>(null)
+  const [realizationPosts, setRealizationPosts] = useState<Post[]>([])
+  const [realizationsLoading, setRealizationsLoading] = useState(false)
+  const [realizationsError, setRealizationsError] = useState<string | null>(null)
+  const [likedRealizations, setLikedRealizations] = useState<Set<string>>(() => new Set())
 
   useEffect(() => {
     if (id) {
@@ -30,6 +38,33 @@ const ProfessionalProfile = () => {
       setError('Profil introuvable')
     }
   }, [id])
+
+  useEffect(() => {
+    const uid = professional?.user_id
+    if (!uid || activeTab !== 'portfolio') return
+
+    let cancelled = false
+    const load = async () => {
+      setRealizationsLoading(true)
+      setRealizationsError(null)
+      try {
+        const list = await socialService.getUserPosts(uid, POST_METADATA_SCOPE_REALIZATION)
+        if (!cancelled) setRealizationPosts(Array.isArray(list) ? list : [])
+      } catch (e) {
+        console.error('Réalisations:', e)
+        if (!cancelled) {
+          setRealizationPosts([])
+          setRealizationsError('Impossible de charger les réalisations.')
+        }
+      } finally {
+        if (!cancelled) setRealizationsLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [professional?.user_id, activeTab])
 
   const loadProfessionalData = async () => {
     if (!id) return
@@ -72,10 +107,34 @@ const ProfessionalProfile = () => {
     return prof.business_name || 'Professionnel'
   }
 
-  // Portfolio = services avec images
-  const portfolio = services
-    .filter(s => s.image_url)
-    .map(s => ({ id: s.id, image: s.image_url!, title: s.title, description: s.description || '' }))
+  const postAuthorLabel = (post: Post) => {
+    if (post.user) {
+      return `${post.user.first_name || ''} ${post.user.last_name || ''}`.trim() || 'Professionnel'
+    }
+    return professional ? getUserName(professional) : 'Professionnel'
+  }
+
+  const handleRealizationLike = async (postId: string) => {
+    try {
+      const response = await socialService.toggleLike(postId) as {
+        liked: boolean
+        likes_count?: number
+        likesCount?: number
+      }
+      const count = response.likes_count ?? response.likesCount ?? 0
+      setRealizationPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, likes_count: count } : p)),
+      )
+      setLikedRealizations((prev) => {
+        const next = new Set(prev)
+        if (response.liked) next.add(postId)
+        else next.delete(postId)
+        return next
+      })
+    } catch (err) {
+      console.error('Like réalisation:', err)
+    }
+  }
 
   const formatReviewDate = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -226,22 +285,75 @@ const ProfessionalProfile = () => {
         )}
 
         {activeTab === 'portfolio' && (
-          <div className="portfolio-section">
-            {portfolio.length > 0 ? (
-              <div className="portfolio-grid">
-                {portfolio.map((item) => (
-                  <div key={item.id} className="portfolio-item">
-                    <div className="portfolio-image">
-                      <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+          <div className="portfolio-section realization-feed">
+            {realizationsLoading && realizationPosts.length === 0 ? (
+              <div className="realization-feed-status">Chargement...</div>
+            ) : realizationsError && realizationPosts.length === 0 ? (
+              <div className="realization-feed-status realization-feed-error">{realizationsError}</div>
+            ) : realizationPosts.length > 0 ? (
+              realizationPosts.map((post) => {
+                const videoUrl = post.video_url ?? (post as { videoUrl?: string }).videoUrl
+                return (
+                  <article key={post.id} className="realization-post-card">
+                    {videoUrl && (
+                      <video src={videoUrl} controls playsInline className="realization-post-media" />
+                    )}
+                    {post.image_url && !videoUrl && (
+                      <img src={post.image_url} alt="" className="realization-post-media" />
+                    )}
+                    <div className="realization-post-body">
+                      <div className="realization-post-meta">
+                        <span className="realization-post-author">{postAuthorLabel(post)}</span>
+                        <span className="realization-post-time">{formatTimeAgo(post.created_at)}</span>
+                      </div>
+                      {post.content && <p className="realization-post-text">{post.content}</p>}
+                      <div className="realization-post-actions">
+                        <button
+                          type="button"
+                          className="realization-action-btn"
+                          onClick={() => handleRealizationLike(post.id)}
+                          aria-label="J’aime"
+                        >
+                          <Heart
+                            size={18}
+                            fill={likedRealizations.has(post.id) ? '#FF3131' : 'none'}
+                            color={likedRealizations.has(post.id) ? '#FF3131' : 'currentColor'}
+                          />
+                          <span>{post.likes_count ?? 0}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="realization-action-btn"
+                          onClick={() => navigate(`/social/post/${post.id}`)}
+                        >
+                          <MessageCircle size={18} />
+                          <span>{post.comments_count ?? 0}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="realization-action-btn"
+                          onClick={() => {
+                            if (navigator.share) {
+                              void navigator.share({
+                                title: postAuthorLabel(post),
+                                text: post.content || '',
+                                url: `${window.location.origin}/social/post/${post.id}`,
+                              })
+                            }
+                          }}
+                        >
+                          <Share2 size={18} />
+                          <span>{post.shares_count ?? 0}</span>
+                        </button>
+                      </div>
                     </div>
-                    <h4 className="portfolio-title">{item.title}</h4>
-                    {item.description && <p className="portfolio-description">{item.description}</p>}
-                  </div>
-                ))}
-              </div>
+                  </article>
+                )
+              })
             ) : (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                <p>Aucune realisation a afficher pour le moment</p>
+              <div className="realization-feed-status">
+                <p>Aucune réalisation publiée pour le moment.</p>
+                <p className="realization-feed-hint">Le professionnel partage ici ses travaux ; vous pouvez aimer et commenter comme sur le fil social.</p>
               </div>
             )}
           </div>
@@ -302,15 +414,23 @@ const ProfessionalProfile = () => {
             })}
           </div>
         </div>
+        {contactPrivacyError && (
+          <p style={{ color: '#c62828', fontSize: 13, margin: '0 0 12px', padding: '0 4px' }}>{contactPrivacyError}</p>
+        )}
         <div className="action-buttons">
           <Button variant="outline" fullWidth onClick={async () => {
             if (!professional?.user_id) return
+            setContactPrivacyError(null)
             try {
               const conversation = await chatService.createIndividualConversation(professional.user_id)
               navigate(`/messages/chat/${conversation.id}`)
             } catch (err) {
               console.error('Erreur creation conversation:', err)
-              navigate('/messages')
+              if (isDmPrivacyBlocked(err)) {
+                setContactPrivacyError(DM_PRIVACY_BLOCKED_MESSAGE_FR)
+              } else {
+                navigate('/messages')
+              }
             }
           }}>
             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>

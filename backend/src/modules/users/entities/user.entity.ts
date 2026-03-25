@@ -20,6 +20,22 @@ export enum AccountStatus {
   BANNED = 'banned',
 }
 
+/**
+ * Qui peut envoyer un premier message (nouvelle conversation)
+ * - contacts_or_follow : vous suivez OU votre répertoire contient son numéro Babylone (défaut)
+ * - followers : uniquement ceux qui vous suivent
+ * - mutual : abonnement mutuel
+ * - none : personne
+ * @deprecated everyone — traité comme contacts_or_follow
+ */
+export type PrivacyDmFrom = 'contacts_or_follow' | 'followers' | 'mutual' | 'none' | 'everyone';
+
+/** Qui peut vous ajouter à un groupe (si l’inviteur a déjà une conversation avec vous) */
+export type PrivacyGroupInvite = 'dm_only' | 'none';
+
+/** Qui peut voir statut / présence (stories en ligne, etc.) — à utiliser côté client */
+export type PrivacyStatusVisibility = 'everyone' | 'followers' | 'nobody';
+
 @Entity('users', { schema: 'babylone' })
 @Index(['telephone'], { unique: true })
 @Index(['email'], { unique: true, where: '"email" IS NOT NULL' })
@@ -71,6 +87,17 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   last_login: Date;
+
+  @Column({ type: 'varchar', length: 24, default: 'contacts_or_follow' })
+  privacy_dm_from: PrivacyDmFrom;
+
+  /** everyone | followers | nobody */
+  @Column({ type: 'varchar', length: 20, default: 'everyone' })
+  privacy_status_visibility: PrivacyStatusVisibility;
+
+  /** dm_only : seulement si quelqu’un a déjà une conv. privée avec vous ; none : jamais */
+  @Column({ type: 'varchar', length: 20, default: 'dm_only' })
+  privacy_group_invite: PrivacyGroupInvite;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;

@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { Camera, Image as ImageIcon, AtSign, X } from 'lucide-react'
-import { socialService } from '../../services/social.service'
+import { socialService, POST_METADATA_SCOPE_REALIZATION } from '../../services/social.service'
 import { storageService } from '../../services/storage.service'
 import './CreatePost.css'
 
@@ -15,6 +15,9 @@ const MAX_VIDEO_SIZE_MB = 100
 
 const CreatePost = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isRealization =
+    searchParams.get('realization') === '1' || searchParams.get('type') === 'realization'
   const [content, setContent] = useState('')
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null)
@@ -81,8 +84,9 @@ const CreatePost = () => {
         image_url: selectedImages[0],
         video_url: selectedVideo ?? undefined,
         pays_code: 'CM',
+        metadata: isRealization ? { scope: POST_METADATA_SCOPE_REALIZATION } : undefined,
       })
-      navigate('/social')
+      navigate(isRealization ? '/professional/profile' : '/social')
     } catch (err) {
       console.error('Erreur publication:', err)
       setError('Impossible de publier. Réessayez.')
@@ -92,7 +96,7 @@ const CreatePost = () => {
   }
 
   return (
-    <ScreenLayout title="Créer une publication" showBack>
+    <ScreenLayout title={isRealization ? 'Publier une réalisation' : 'Créer une publication'} showBack>
       <div className="create-post">
         <div className="post-header-section">
           <div className="post-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#667eea', color: '#fff', fontWeight: 700 }}>
@@ -103,10 +107,19 @@ const CreatePost = () => {
           </div>
         </div>
 
+        {isRealization && (
+          <p style={{ margin: '0 16px 12px', fontSize: 13, color: '#64748b', lineHeight: 1.4 }}>
+            Cette publication apparaît sur votre fiche professionnelle (onglet Réalisations), pas dans le fil social général.
+          </p>
+        )}
         <div className="post-content-section">
           <textarea
             className="post-textarea"
-            placeholder="Qu'est-ce qui vous passe par la tête ?"
+            placeholder={
+              isRealization
+                ? 'Décrivez ce travail, le contexte, les matériaux…'
+                : "Qu'est-ce qui vous passe par la tête ?"
+            }
             rows={6}
             value={content}
             onChange={(e) => {
@@ -117,7 +130,9 @@ const CreatePost = () => {
         </div>
 
         <div className="post-media-section">
-          <h3 className="section-title">Ajouter à votre publication</h3>
+          <h3 className="section-title">
+            {isRealization ? 'Photo ou vidéo de la réalisation' : 'Ajouter à votre publication'}
+          </h3>
           <input
             ref={imageInputRef}
             type="file"

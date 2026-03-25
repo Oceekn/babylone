@@ -61,6 +61,14 @@ export class Professional {
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
+  /** Début de plage horaire pour les créneaux réservables (0–23), défaut 8h */
+  @Column({ type: 'smallint', default: 8 })
+  work_start_hour: number;
+
+  /** Fin de plage (excluse du dernier créneau), défaut 19h */
+  @Column({ type: 'smallint', default: 19 })
+  work_end_hour: number;
+
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import { Phone, Video, Paperclip, Camera, Mic, Send } from 'lucide-react'
 import { chatService, Message } from '../../services/chat.service'
@@ -8,6 +8,7 @@ import { authService } from '../../services/auth.service'
 import './IndividualChat.css'
 
 const IndividualChat = () => {
+  const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
@@ -16,7 +17,7 @@ const IndividualChat = () => {
   const [conversationName, setConversationName] = useState('Chat')
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const currentUserId = authService.getUserFromToken()?.sub
+  const currentUserId = authService.getCurrentUserId()
 
   // Vérifier si l'ID est un UUID valide
   const isValidUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
@@ -157,11 +158,20 @@ const IndividualChat = () => {
                 {!isMyMessage(msg) && (
                   <span className="message-sender">{getUserName(msg)}</span>
                 )}
-                {msg.metadata?.from_story && (
-                  <span className="message-from-story">À partir d&apos;une story</span>
-                )}
                 {msg.content && (
                   <p className="message-text">{msg.content}</p>
+                )}
+                {msg.metadata?.from_story && (
+                  <button
+                    type="button"
+                    className="message-from-story message-from-story-btn"
+                    onClick={() => {
+                      const sid = msg.metadata?.story_id as string | undefined
+                      if (sid) navigate(`/social/story/${sid}`)
+                    }}
+                  >
+                    {msg.metadata?.story_id ? 'À partir d\'une story — voir' : 'À partir d\'une story'}
+                  </button>
                 )}
                 {msg.media_url && (
                   <img src={msg.media_url} alt="Media" className="message-media" />

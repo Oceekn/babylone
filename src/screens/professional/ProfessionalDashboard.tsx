@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Button from '../../components/common/Button'
-import { Bell, Star, Loader } from 'lucide-react'
+import { Star, Loader } from 'lucide-react'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { bookingsService, Booking } from '../../services/bookings.service'
 import './ProfessionalDashboard.css'
 
@@ -42,7 +43,7 @@ const ProfessionalDashboard = () => {
   const greeting = user.first_name ? `Bonjour, ${user.first_name}` : 'Bonjour'
 
   return (
-    <ScreenLayout title="Dashboard" rightAction={<Bell size={24} />} showBottomNav>
+    <ScreenLayout title="Dashboard" rightAction={<ProfessionalInboxBell />} showBottomNav>
       <div className="professional-dashboard">
         <h2 className="greeting">{greeting}</h2>
 
@@ -107,6 +108,9 @@ const ProfessionalDashboard = () => {
         <div className="quick-actions">
           <Button variant="outline" fullWidth onClick={() => navigate('/professional/calendar')}>
             Voir calendrier
+          </Button>
+          <Button variant="outline" fullWidth onClick={() => navigate('/professional/availability')}>
+            Horaires de réservation
           </Button>
           <Button variant="outline" fullWidth onClick={() => navigate('/professional/services')}>
             Gerer services

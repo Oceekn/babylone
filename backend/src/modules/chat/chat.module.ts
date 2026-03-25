@@ -7,6 +7,7 @@ import { Conversation } from './entities/conversation.entity';
 import { ConversationParticipant } from './entities/conversation-participant.entity';
 import { Message } from './entities/message.entity';
 import { UsersModule } from '../users/users.module';
+import { SocialModule } from '../social/social.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     TypeOrmModule.forFeature([Conversation, ConversationParticipant, Message]),
     UsersModule,
+    SocialModule,
     JwtModule,
     ConfigModule,
   ],

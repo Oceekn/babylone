@@ -15,6 +15,8 @@ export interface Conversation {
   unread_count?: number;
   created_at: string;
   participants?: ConversationParticipant[];
+  /** Conversation 1-à-1 : id de l'autre personne (création de groupe) */
+  other_user_id?: string | null;
 }
 
 export interface ConversationParticipant {
@@ -43,7 +45,7 @@ export interface Message {
   read_at?: string;
   reply_to_id?: string;
   /** Indique que le message a été envoyé depuis une réponse à une story */
-  metadata?: { from_story?: boolean; story_id?: string };
+  metadata?: { from_story?: boolean; story_id?: string; [key: string]: unknown };
   created_at: string;
   user?: {
     id: string;

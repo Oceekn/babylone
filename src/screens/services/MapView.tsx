@@ -4,42 +4,33 @@ import ScreenLayout from '../../components/common/ScreenLayout'
 import Button from '../../components/common/Button'
 import { Star, MapPin, Navigation, List, ChevronLeft, ChevronRight } from 'lucide-react'
 import { professionalsService, Professional } from '../../services/professionals.service'
+import { readGeoFromCache } from '../../utils/geolocationSession'
+import GeoLocationBlocked from '../../components/services/GeoLocationBlocked'
 import './MapView.css'
 
 const MapView = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const initial = readGeoFromCache()
   const [professionals, setProfessionals] = useState<Professional[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>({
-    lat: parseFloat(searchParams.get('latitude') || '4.0500'),
-    lng: parseFloat(searchParams.get('longitude') || '9.7000'),
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>(() => {
+    if (initial.status === 'granted') return initial.coords
+    const lat = parseFloat(searchParams.get('latitude') || '4.0500')
+    const lng = parseFloat(searchParams.get('longitude') || '9.7000')
+    return { lat, lng }
   })
+  const [geoOk, setGeoOk] = useState(() => initial.status === 'granted')
 
-  useEffect(() => {
-    // Essayer d'obtenir la position reelle
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        },
-        () => {
-          // Position par defaut
-        },
-        { enableHighAccuracy: true, timeout: 5000 }
-      )
-    }
-    loadProfessionals()
-  }, [])
-
-  const loadProfessionals = async () => {
+  const loadProfessionals = async (coordsOverride?: { lat: number; lng: number }) => {
+    const latLng = coordsOverride ?? userCoords
     setLoading(true)
     try {
       // Essayer la recherche geographique
       const results = await professionalsService.search({
-        latitude: userCoords.lat,
-        longitude: userCoords.lng,
+        latitude: latLng.lat,
+        longitude: latLng.lng,
         radius: 50000,
         pays_code: 'CM',
       })
@@ -63,6 +54,15 @@ const MapView = () => {
     }
   }
 
+  useEffect(() => {
+    if (!geoOk) {
+      setLoading(false)
+      return
+    }
+    loadProfessionals(userCoords)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recharger quand la position devient valide
+  }, [geoOk, userCoords])
+
   const calculateDistance = (lat2: number, lon2: number): string => {
     const R = 6371
     const dLat = (lat2 - userCoords.lat) * Math.PI / 180
@@ -84,6 +84,20 @@ const MapView = () => {
   }
 
   const selected = professionals[selectedIndex]
+
+  if (!geoOk) {
+    return (
+      <ScreenLayout showBottomNav>
+        <GeoLocationBlocked
+          onGranted={(c) => {
+            setUserCoords(c)
+            setGeoOk(true)
+            setLoading(true)
+          }}
+        />
+      </ScreenLayout>
+    )
+  }
 
   const navigatePrev = () => {
     setSelectedIndex(prev => prev > 0 ? prev - 1 : professionals.length - 1)

@@ -30,7 +30,8 @@ interface Story {
   user_id: string
   text?: string
   media_url?: string
-  views_count: number
+  /** Masqué par l’API pour les stories des autres */
+  views_count?: number
   created_at?: string
   user?: { id: string; first_name?: string; last_name?: string; avatar_url?: string }
 }
@@ -139,6 +140,7 @@ const ClientHomeFeed = () => {
   const formatPostDate = (dateString?: string) => {
     if (!dateString) return ''
     const date = parseUtc(dateString)
+    if (!date) return ''
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))

@@ -1,0 +1,44 @@
+.geo-blocked {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.geo-blocked-inner {
+  max-width: 400px;
+  text-align: center;
+}
+
+.geo-blocked-icon {
+  color: #a14545;
+  margin-bottom: 16px;
+}
+
+.geo-blocked-title {
+  font-size: 1.35rem;
+  margin: 0 0 12px;
+  color: var(--text-dark, #1a1a2e);
+}
+
+.geo-blocked-text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dark-grey, #555);
+  margin: 0 0 16px;
+}
+
+.geo-blocked-warn {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #856404;
+  background: #fff3cd;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}

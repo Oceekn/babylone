@@ -6,6 +6,8 @@ import Button from '../../components/common/Button'
 import { Search, MapPin, Clock } from 'lucide-react'
 import { servicesService, ServiceWithProfessional } from '../../services/services.service'
 import { DEFAULT_SERVICE_CATEGORIES } from '../../constants/categories'
+import { readGeoFromCache } from '../../utils/geolocationSession'
+import GeoLocationBlocked from '../../components/services/GeoLocationBlocked'
 import './ServicesSearch.css'
 
 function matchService(s: ServiceWithProfessional, query: string): boolean {
@@ -32,8 +34,9 @@ function matchService(s: ServiceWithProfessional, query: string): boolean {
 const ServicesSearch = () => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
-  const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
+  const initialGeo = readGeoFromCache()
+  const [coords, setCoords] = useState<{ lat: number; lng: number }>(() => initialGeo.coords)
+  const [geoStatus, setGeoStatus] = useState<'granted' | 'denied'>(() => initialGeo.status)
   const [services, setServices] = useState<ServiceWithProfessional[]>([])
   const [loadingServices, setLoadingServices] = useState(true)
   const [categories, setCategories] = useState<{ name: string; count: number }[]>(
@@ -43,10 +46,6 @@ const ServicesSearch = () => {
   const filteredServices = useMemo(() => {
     return services.filter((s) => matchService(s, searchQuery))
   }, [services, searchQuery])
-
-  useEffect(() => {
-    requestGeolocation()
-  }, [])
 
   useEffect(() => {
     const load = async () => {
@@ -66,28 +65,6 @@ const ServicesSearch = () => {
     }
     load()
   }, [])
-
-  const requestGeolocation = () => {
-    if (!navigator.geolocation) {
-      setGeoStatus('denied')
-      // Fallback Douala
-      setCoords({ lat: 4.0500, lng: 9.7000 })
-      return
-    }
-    setGeoStatus('loading')
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setGeoStatus('granted')
-      },
-      () => {
-        // Fallback Douala
-        setCoords({ lat: 4.0500, lng: 9.7000 })
-        setGeoStatus('denied')
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
-  }
 
   const runSearchFromBackend = async () => {
     if (!searchQuery.trim()) return
@@ -112,8 +89,8 @@ const ServicesSearch = () => {
       return
     }
     const params = new URLSearchParams()
-    params.set('latitude', String(coords?.lat || 4.0500))
-    params.set('longitude', String(coords?.lng || 9.7000))
+    params.set('latitude', String(coords.lat))
+    params.set('longitude', String(coords.lng))
     params.set('radius', '10000')
     params.set('pays_code', 'CM')
     navigate(`/services/results?${params.toString()}`)
@@ -170,16 +147,26 @@ const ServicesSearch = () => {
   }
   const getCategoryIcon = (name: string) => categoryIcons[name.toLowerCase()] || '&#128230;'
 
+  if (geoStatus === 'denied') {
+    return (
+      <ScreenLayout title="Services" showBottomNav>
+        <GeoLocationBlocked
+          onGranted={(c) => {
+            setCoords(c)
+            setGeoStatus('granted')
+          }}
+        />
+      </ScreenLayout>
+    )
+  }
+
   return (
     <ScreenLayout title="Services" showBottomNav>
       <div className="services-search">
-        {/* Geolocation status */}
+        {/* Statut GPS (cache uniquement — plus de nouvelle demande ici) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 16px', marginBottom: '8px', fontSize: '13px', color: geoStatus === 'granted' ? '#22c55e' : '#999' }}>
           <MapPin size={14} />
-          {geoStatus === 'loading' && <span>Localisation en cours...</span>}
-          {geoStatus === 'granted' && <span>Position GPS active</span>}
-          {geoStatus === 'denied' && <span>Position par defaut (Douala)</span>}
-          {geoStatus === 'idle' && <span>Localisation...</span>}
+          <span>Position GPS active</span>
         </div>
 
         <div className="search-bar-container">

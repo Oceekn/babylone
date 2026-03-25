@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { ChevronRight, LogOut } from 'lucide-react'
 import { authService } from '../../services/auth.service'
 import { chatSocketService } from '../../services/chat-socket.service'
@@ -8,15 +8,6 @@ import './ProfessionalSettings.css'
 
 const ProfessionalSettings = () => {
   const navigate = useNavigate()
-  const [autoAvailability, setAutoAvailability] = useState(() => {
-    return localStorage.getItem('pro_auto_availability') === 'true'
-  })
-
-  const handleToggle = () => {
-    const newVal = !autoAvailability
-    setAutoAvailability(newVal)
-    localStorage.setItem('pro_auto_availability', String(newVal))
-  }
 
   const handleLogout = () => {
     chatSocketService.disconnect()
@@ -30,8 +21,14 @@ const ProfessionalSettings = () => {
       title: 'Compte',
       items: [
         {
+          label: 'Fiche professionnelle',
+          description: 'Prénom, nom, nom commercial, domaine (ex. informatique), adresse et position GPS',
+          onClick: () => navigate('/professional/profile/edit'),
+          action: <ChevronRight size={20} />,
+        },
+        {
           label: 'Modifier le profil',
-          description: 'Modifier vos informations personnelles',
+          description: 'Photo, email et informations personnelles',
           onClick: () => navigate('/profile/edit'),
           action: <ChevronRight size={20} />,
         },
@@ -53,15 +50,11 @@ const ProfessionalSettings = () => {
       title: 'Disponibilite',
       items: [
         {
-          label: 'Disponibilite automatique',
-          description: 'Definir les heures de travail regulieres',
-          action: (
-            <label className="toggle-container">
-              <input type="checkbox" checked={autoAvailability} onChange={handleToggle} />
-              <span className="toggle-slider" />
-            </label>
-          ),
-        }
+          label: 'Horaires de reservation',
+          description: 'Plage horaire des creneaux proposés aux clients (ex. 8h–19h)',
+          onClick: () => navigate('/professional/availability'),
+          action: <ChevronRight size={20} />,
+        },
       ]
     },
     {
@@ -82,7 +75,7 @@ const ProfessionalSettings = () => {
   ]
 
   return (
-    <ScreenLayout title="Parametres professionnels" showBack showBottomNav>
+    <ScreenLayout title="Parametres professionnels" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="professional-settings">
         {settings.map((section, sectionIndex) => (
           <div key={sectionIndex} className="settings-section">

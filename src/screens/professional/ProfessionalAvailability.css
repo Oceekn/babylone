@@ -1,0 +1,55 @@
+.pro-avail-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.pro-availability {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.pro-avail-intro {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #475569;
+  margin: 0 0 20px;
+}
+
+.pro-avail-error {
+  padding: 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.pro-avail-row {
+  margin-bottom: 16px;
+}
+
+.pro-avail-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.pro-avail-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  background: #fff;
+}
+
+.pro-avail-example {
+  font-size: 12px;
+  color: #64748b;
+  margin: 8px 0 24px;
+  line-height: 1.4;
+}

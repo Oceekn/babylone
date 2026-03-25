@@ -1,21 +1,27 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
-import { Search } from 'lucide-react'
+import { Search, AlertCircle } from 'lucide-react'
 import { usersService, User } from '../../services/users.service'
 import { chatService } from '../../services/chat.service'
+import { DM_PRIVACY_BLOCKED_MESSAGE_FR, isDmPrivacyBlocked } from '../../utils/chatPrivacy'
+import { getMessagesBasePath } from '../../utils/professionalMessages'
 import './NewConversation.css'
 
 const NewConversation = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const messagesBase = getMessagesBasePath(location.pathname)
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [privacyError, setPrivacyError] = useState<string | null>(null)
 
   const handleSearch = async (query: string) => {
+    setPrivacyError(null)
     setSearchQuery(query)
     if (query.trim().length < 2) {
       setResults([])
@@ -35,11 +41,16 @@ const NewConversation = () => {
   const startConversation = async (user: User) => {
     try {
       setCreating(true)
-      // Creer ou recuperer la conversation individuelle avec cet utilisateur
+      setPrivacyError(null)
       const conversation = await chatService.createIndividualConversation(user.id)
       navigate(`/messages/chat/${conversation.id}`)
     } catch (err) {
       console.error('Erreur creation conversation:', err)
+      if (isDmPrivacyBlocked(err)) {
+        setPrivacyError(DM_PRIVACY_BLOCKED_MESSAGE_FR)
+      } else {
+        setPrivacyError('Impossible de démarrer la conversation. Réessayez.')
+      }
     } finally {
       setCreating(false)
     }
@@ -53,6 +64,25 @@ const NewConversation = () => {
   return (
     <ScreenLayout title="Nouveau message" showBack showBottomNav>
       <div className="new-conversation">
+        {privacyError && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'flex-start',
+              margin: '0 0 12px',
+              padding: 12,
+              background: '#ffebee',
+              color: '#b71c1c',
+              borderRadius: 8,
+              fontSize: 13,
+            }}
+          >
+            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 2 }} />
+            <span>{privacyError}</span>
+          </div>
+        )}
+
         <div className="search-section">
           <Input
             placeholder="Rechercher par nom, telephone..."
@@ -101,7 +131,7 @@ const NewConversation = () => {
           )}
         </div>
 
-        <Button variant="secondary" fullWidth onClick={() => navigate('/messages/group/new')}>
+        <Button variant="secondary" fullWidth onClick={() => navigate(`${messagesBase}/group/new`)}>
           Creer un groupe
         </Button>
       </div>

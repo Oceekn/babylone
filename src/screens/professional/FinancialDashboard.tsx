@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import { Loader, ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, Calendar } from 'lucide-react'
 import { walletService, Transaction } from '../../services/wallet.service'
 import './FinancialDashboard.css'
@@ -61,7 +62,7 @@ const FinancialDashboard = () => {
   const displayTransactions = filteredTransactions.filter(t => t.status === 'completed')
 
   return (
-    <ScreenLayout title="Finances" showBack showBottomNav>
+    <ScreenLayout title="Finances" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="financial-dashboard">
         {loading ? (
           <div className="financial-loading">

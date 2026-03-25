@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ScreenLayout from '../../components/common/ScreenLayout'
+import ProfessionalInboxBell from '../../components/professional/ProfessionalInboxBell'
 import Button from '../../components/common/Button'
 import { Calendar, MessageCircle, Loader } from 'lucide-react'
 import { bookingsService, Booking } from '../../services/bookings.service'
 import './BookingRequest.css'
 
 const BookingRequest = () => {
+  const navigate = useNavigate()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -65,13 +68,18 @@ const BookingRequest = () => {
   }
 
   return (
-    <ScreenLayout title="Demandes de reservation" showBack showBottomNav>
+    <ScreenLayout title="Demandes de reservation" showBack showBottomNav rightAction={<ProfessionalInboxBell />}>
       <div className="booking-request">
         {actionError && (
           <div className="booking-request-error">
             {actionError}
           </div>
         )}
+        <div style={{ padding: '0 16px 12px' }}>
+          <Button variant="outline" fullWidth onClick={() => navigate('/professional/calendar')}>
+            Voir le calendrier (toutes les réservations)
+          </Button>
+        </div>
         {loading ? (
           <div className="booking-request-loading">
             <Loader size={32} className="spin" />
